@@ -1,0 +1,94 @@
+{
+    "draftVersion": 1,
+    "installable": false,
+    "examples": [
+        {
+            "name": "fatal-shared-atlas-json1",
+            "address": {
+                "kind": "spine-assets",
+                "loader": "mti",
+                "assetKey": "Fatal/fatal_nusi_0.atlas",
+                "atlasKey": "fatal_nusi_0",
+                "jsonKey": "fatal_nusi_1"
+            }
+        },
+        {
+            "name": "synthetic-embedded-image",
+            "address": {
+                "kind": "pxl-image",
+                "source": {
+                    "loader": "mti",
+                    "assetKey": "Pxl/_icons.pxls",
+                    "textKey": "_icons.pxls"
+                },
+                "imageId": "123",
+                "imageId2": "0.5",
+                "role": "I"
+            }
+        },
+        {
+            "name": "synthetic-packed-page",
+            "address": {
+                "kind": "pxl-page",
+                "source": {
+                    "loader": "mti",
+                    "assetKey": "Pxl/_icons.pxls",
+                    "textKey": "_icons.pxls"
+                },
+                "storage": "packed",
+                "pageOrdinal": 0,
+                "imageType": 0
+            }
+        },
+        {
+            "name": "synthetic-external-page",
+            "address": {
+                "kind": "pxl-page",
+                "source": {
+                    "loader": "mti",
+                    "assetKey": "PxlNoel/noel.pxls",
+                    "textKey": "noel.pxls"
+                },
+                "storage": "external",
+                "pageIndex": 1
+            }
+        },
+        {
+            "name": "tutorial-video",
+            "address": {
+                "kind": "video",
+                "assetKey": "Tuto_mp4/tuto_energyball",
+                "clipKey": "tuto_energyball"
+            }
+        },
+        {
+            "name": "synthetic-region",
+            "address": {
+                "kind": "atlas-region",
+                "loader": "mti",
+                "assetKey": "Example/shared.atlas",
+                "atlasKey": "shared",
+                "region": "part"
+            }
+        }
+    ],
+    "pageMapExample": {
+        "expectedPageKeys": [
+            "page-a.png",
+            "page-b.png"
+        ],
+        "pages": [
+            {
+                "pageKey": "page-a.png",
+                "image": "candidate/a.png"
+            },
+            {
+                "pageKey": "page-b.png",
+                "image": "candidate/b.png"
+            }
+        ]
+    },
+    "unresolvedKinds": {
+        "mpcc": "Source file to runtime object binding not established; names alone do not identify a replacement target."
+    }
+}

@@ -1,3 +1,4 @@
+using AICResourceKit.Contracts;
 using Spine;
 using System;
 using System.Collections;
@@ -13,7 +14,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
     {
         internal string Json;
         internal readonly Dictionary<string, string> BoneMap = new Dictionary<string, string>(StringComparer.Ordinal);
-        internal ReplacementDisplay Display = new ReplacementDisplay();
+        internal ResourceDisplay Display = new ResourceDisplay();
         internal string DirtMode;
         internal bool DirtEnabled;
         internal bool HasClipping;
@@ -54,7 +55,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             var animationMap = new Dictionary<string, string>(StringComparer.Ordinal);
             var skinMap = new Dictionary<string, string>(StringComparer.Ordinal);
             var boneMap = new Dictionary<string, string>(StringComparer.Ordinal);
-            var display = new ReplacementDisplay();
+            var display = new ResourceDisplay();
             string animationFallback = null;
             string skinFallback = null;
             string dirt = "auto";
@@ -123,7 +124,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             foreach (var pair in source) target[pair.Key] = pair.Value;
         }
 
-        private static void Overlay(ReplacementDisplay target, ReplacementDisplay source)
+        private static void Overlay(ResourceDisplay target, ResourceDisplay source)
         {
             if (source.SkeletonScale.HasValue) target.SkeletonScale = source.SkeletonScale;
             if (source.ScaleMultiplier.HasValue) target.ScaleMultiplier = source.ScaleMultiplier;

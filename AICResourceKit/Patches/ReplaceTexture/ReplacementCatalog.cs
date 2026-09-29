@@ -1,3 +1,4 @@
+using AICResourceKit.Contracts;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,50 +7,13 @@ using System.Threading;
 
 namespace AICResourceKit.Patches.ReplaceTexture
 {
-    internal sealed class ReplacementDisplay
-    {
-        internal float? SkeletonScale;
-        internal float? ScaleMultiplier;
-        internal float? OffsetX;
-        internal float? OffsetY;
-        internal float? Width;
-        internal float? Height;
-        internal float? RightShift;
-    }
-
-    internal sealed class ReplacementTarget
+    internal sealed class ReplacementTarget : ResourceTarget
     {
         internal ReplacementPackage Owner;
         internal string PackageId;
-        internal string Type;
-        internal string Loader;
-        internal string AssetKey;
-        internal string ImageKey;
-        internal string ResourcePath;
-        internal string ObjectType;
-        internal string SpineKey;
-        internal string JsonKey;
         internal string ImagePath;
         internal string AtlasPath;
         internal string JsonPath;
-        internal readonly HashSet<string> Sections = new HashSet<string>(StringComparer.Ordinal);
-        internal readonly Dictionary<string, string> AnimationMap = new Dictionary<string, string>(StringComparer.Ordinal);
-        internal readonly Dictionary<string, string> SkinMap = new Dictionary<string, string>(StringComparer.Ordinal);
-        internal readonly Dictionary<string, string> BoneMap = new Dictionary<string, string>(StringComparer.Ordinal);
-        internal string AnimationFallback;
-        internal string SkinFallback;
-        internal ReplacementDisplay Display = new ReplacementDisplay();
-        internal string Dirt;
-
-        internal string Identity
-        {
-            get
-            {
-                if (Type == "spine") return "spine\n" + SpineKey + "\n" + JsonKey;
-                if (Loader == "mti") return "texture\nmti\n" + AssetKey + "\n" + (ImageKey ?? "");
-                return "texture\nresources\n" + ResourcePath + "\n" + ObjectType;
-            }
-        }
     }
 
     internal sealed class ReplacementPackage
@@ -172,183 +136,73 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private static ReplacementPackage ParsePackage(string root, string sensitive, string file, bool isSensitive,
             HashSet<string> verified, List<string> errors, Dictionary<string, object> json)
         {
-            if (PortraitJson.Integer(PortraitJson.Get(json, "formatVersion")) != 2)
-                throw new InvalidDataException("Unsupported replacement manifest version.");
+            string id = ResourceManifest.ReadHeader(json, out var items);
             var package = new ReplacementPackage
             {
-                Id = Required(json, "id"), ManifestPath = file, Sensitive = isSensitive
+                Id = id, ManifestPath = file, Sensitive = isSensitive
             };
             string directory = Path.GetDirectoryName(file);
-            var items = PortraitJson.Array(PortraitJson.Get(json, "targets"));
-            if (items.Count == 0) throw new InvalidDataException("Replacement package has no targets.");
             var identities = new HashSet<string>(StringComparer.Ordinal);
             foreach (object item in items)
             {
-                var targetJson = PortraitJson.Object(item);
-                string identity = null;
+                Dictionary<string, object> targetJson;
+                string identity;
                 try
                 {
-                    identity = IdentityOf(targetJson);
-                    if (!identities.Add(identity))
-                        throw new InvalidDataException("Duplicate target in package: " + identity.Replace('\n', '/'));
+                    targetJson = PortraitJson.Object(item);
+                    identity = ResourceManifest.IdentityOf(targetJson);
+                }
+                catch (Exception ex)
+                {
+                    package.HasUnidentifiedTargetErrors = true;
+                    errors.Add(file + " [invalid target]: " + ex.Message);
+                    continue;
+                }
+
+                // 身份重复使整个包无效，独立于下面的单目标文件和内容检查。
+                if (!identities.Add(identity))
+                    throw new InvalidDataException("Duplicate target in package: " + identity.Replace('\n', '/'));
+                try
+                {
                     var target = ParseTarget(root, sensitive, directory, package.Id, isSensitive, targetJson, verified);
                     target.Owner = package;
                     package.Targets.Add(target);
                 }
                 catch (Exception ex)
                 {
-                    if (ex is InvalidDataException && ex.Message.StartsWith("Duplicate target in package:", StringComparison.Ordinal))
-                        throw;
-                    if (identity != null) package.InvalidTargetIdentities.Add(identity);
-                    else package.HasUnidentifiedTargetErrors = true;
-                    errors.Add(file + " [" + (identity ?? "invalid target") + "]: " + ex.Message);
+                    package.InvalidTargetIdentities.Add(identity);
+                    errors.Add(file + " [" + identity + "]: " + ex.Message);
                 }
             }
             return package;
         }
 
-        private static string IdentityOf(Dictionary<string, object> json)
-        {
-            string type = Required(json, "type").ToLowerInvariant();
-            if (type == "spine") return "spine\n" + Required(json, "key") + "\n" + Required(json, "jsonKey");
-            if (type != "texture") throw new InvalidDataException("Target type must be texture or spine.");
-            string loader = Required(json, "loader").ToLowerInvariant();
-            if (loader == "mti")
-                return "texture\nmti\n" + Required(json, "assetKey") + "\n" + (PortraitJson.String(json, "imageKey") ?? "");
-            if (loader == "resources")
-                return "texture\nresources\n" + Required(json, "path") + "\n" + Required(json, "objectType");
-            throw new InvalidDataException("Texture loader must be mti or resources.");
-        }
-
         private static ReplacementTarget ParseTarget(string root, string sensitive, string directory, string packageId,
             bool packageSensitive, Dictionary<string, object> json, HashSet<string> verified)
         {
-            var target = new ReplacementTarget { PackageId = packageId, Type = Required(json, "type").ToLowerInvariant() };
-            if (target.Type == "texture")
+            var target = ResourceManifest.ReadTarget<ReplacementTarget>(json);
+            target.PackageId = packageId;
+            foreach (var dependency in target.Dependencies)
             {
-                target.Loader = Required(json, "loader").ToLowerInvariant();
-                target.ImagePath = Resource(root, sensitive, directory, Required(json, "image"), packageSensitive, verified);
-                ValidatePngHeader(target.ImagePath);
-                if (target.Loader == "mti")
+                string path = Resource(root, sensitive, directory, dependency.Path, packageSensitive, verified);
+                if (dependency.Kind == "image")
                 {
-                    target.AssetKey = Required(json, "assetKey");
-                    target.ImageKey = PortraitJson.String(json, "imageKey");
+                    target.ImagePath = path;
+                    ValidatePngHeader(path);
                 }
-                else if (target.Loader == "resources")
+                else if (dependency.Kind == "atlas")
                 {
-                    target.ResourcePath = Required(json, "path");
-                    target.ObjectType = Required(json, "objectType");
-                    if (target.ObjectType != "Texture2D" && target.ObjectType != "Sprite")
-                        throw new InvalidDataException("Resources objectType must be Texture2D or Sprite.");
+                    target.AtlasPath = path;
+                    if (PortraitCatalog.ReadAtlas(ReplacementResourceIO.ReadText(path)).Pages.Count != 1)
+                        throw new InvalidDataException("Spine replacement atlas must contain exactly one page.");
                 }
-                else throw new InvalidDataException("Texture loader must be mti or resources.");
-                return target;
-            }
-            if (target.Type != "spine") throw new InvalidDataException("Target type must be texture or spine.");
-            target.SpineKey = Required(json, "key");
-            target.JsonKey = Required(json, "jsonKey");
-            string image = PortraitJson.String(json, "image");
-            string atlas = PortraitJson.String(json, "atlas");
-            if (image != null)
-            {
-                target.ImagePath = Resource(root, sensitive, directory, image, packageSensitive, verified);
-                ValidatePngHeader(target.ImagePath);
-            }
-            if (atlas != null)
-            {
-                target.AtlasPath = Resource(root, sensitive, directory, atlas, packageSensitive, verified);
-                if (PortraitCatalog.ReadAtlas(ReplacementResourceIO.ReadText(target.AtlasPath)).Pages.Count != 1)
-                    throw new InvalidDataException("Spine replacement atlas must contain exactly one page.");
-            }
-            object spineValue = PortraitJson.Get(json, "spine");
-            if (spineValue != null)
-            {
-                var spine = PortraitJson.Object(spineValue);
-                target.JsonPath = Resource(root, sensitive, directory, Required(spine, "json"), packageSensitive, verified);
-                PortraitJson.Parse(ReplacementResourceIO.ReadText(target.JsonPath));
-                foreach (object sectionValue in PortraitJson.Array(PortraitJson.Get(spine, "replace")))
+                else
                 {
-                    string section = sectionValue as string ?? throw new InvalidDataException("Spine replace entries must be strings.");
-                    if (!new[] { "bones", "slots", "constraints", "skins", "attachments", "events", "animations", "all" }.Contains(section))
-                        throw new InvalidDataException("Unknown Spine replacement section: " + section);
-                    target.Sections.Add(section);
+                    target.JsonPath = path;
+                    PortraitJson.Parse(ReplacementResourceIO.ReadText(path));
                 }
-                if (target.Sections.Count == 0) throw new InvalidDataException("Spine replacement has no sections.");
-                if (target.Sections.Contains("all") && target.Sections.Count != 1)
-                    throw new InvalidDataException("all cannot be combined with other Spine replacement sections.");
-                if (target.Sections.Contains("skins") && target.Sections.Contains("attachments"))
-                    throw new InvalidDataException("skins and attachments cannot be selected in the same target layer.");
             }
-            ReadCompatibility(json, target);
-            ReadDisplay(json, target.Display);
-            object effectsValue = PortraitJson.Get(json, "effects");
-            if (effectsValue != null)
-            {
-                target.Dirt = PortraitJson.String(PortraitJson.Object(effectsValue), "dirt", "auto");
-                if (!new[] { "auto", "legacy", "disabled" }.Contains(target.Dirt))
-                    throw new InvalidDataException("effects.dirt must be auto, legacy or disabled.");
-            }
-            if (target.ImagePath == null && target.AtlasPath == null && target.JsonPath == null
-                && target.AnimationMap.Count == 0 && target.SkinMap.Count == 0 && target.BoneMap.Count == 0
-                && !HasDisplay(target.Display) && target.Dirt == null)
-                throw new InvalidDataException("Spine target does not replace anything.");
             return target;
-        }
-
-        private static void ReadCompatibility(Dictionary<string, object> json, ReplacementTarget target)
-        {
-            object value = PortraitJson.Get(json, "compatibility");
-            if (value == null) return;
-            var map = PortraitJson.Object(value);
-            ReadMap(map, "animations", target.AnimationMap);
-            ReadMap(map, "skins", target.SkinMap);
-            ReadMap(map, "bones", target.BoneMap);
-            target.AnimationFallback = PortraitJson.String(map, "animationFallback");
-            target.SkinFallback = PortraitJson.String(map, "skinFallback");
-        }
-
-        private static void ReadMap(Dictionary<string, object> parent, string key, Dictionary<string, string> output)
-        {
-            object value = PortraitJson.Get(parent, key);
-            if (value == null) return;
-            foreach (var pair in PortraitJson.Object(value))
-            {
-                string mapped = pair.Value as string;
-                if (string.IsNullOrWhiteSpace(pair.Key) || string.IsNullOrWhiteSpace(mapped))
-                    throw new InvalidDataException("Invalid compatibility mapping: " + key);
-                output.Add(pair.Key, mapped);
-            }
-        }
-
-        private static void ReadDisplay(Dictionary<string, object> json, ReplacementDisplay display)
-        {
-            object value = PortraitJson.Get(json, "display");
-            if (value == null) return;
-            var map = PortraitJson.Object(value);
-            display.SkeletonScale = OptionalNumber(map, "skeletonScale");
-            display.ScaleMultiplier = OptionalNumber(map, "scaleMultiplier");
-            display.OffsetX = OptionalNumber(map, "offsetX");
-            display.OffsetY = OptionalNumber(map, "offsetY");
-            display.Width = OptionalNumber(map, "width");
-            display.Height = OptionalNumber(map, "height");
-            display.RightShift = OptionalNumber(map, "rightShift");
-            if ((display.SkeletonScale.HasValue && display.SkeletonScale.Value <= 0)
-                || (display.ScaleMultiplier.HasValue && display.ScaleMultiplier.Value <= 0)
-                || (display.Width.HasValue && display.Width.Value <= 0)
-                || (display.Height.HasValue && display.Height.Value <= 0))
-                throw new InvalidDataException("Display scale and dimensions must be positive.");
-        }
-
-        private static float? OptionalNumber(Dictionary<string, object> map, string key)
-        {
-            object value = PortraitJson.Get(map, key);
-            return value == null ? (float?)null : (float)PortraitJson.Number(value);
-        }
-
-        private static bool HasDisplay(ReplacementDisplay value)
-        {
-            return value.SkeletonScale.HasValue || value.ScaleMultiplier.HasValue || value.OffsetX.HasValue
-                || value.OffsetY.HasValue || value.Width.HasValue || value.Height.HasValue || value.RightShift.HasValue;
         }
 
         private static string Resource(string root, string sensitive, string directory, string relative,
@@ -367,14 +221,6 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (header.Length != 33) throw new InvalidDataException("Expected PNG with IHDR.");
             byte[] signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
             if (!header.Take(8).SequenceEqual(signature)) throw new InvalidDataException("Expected PNG with IHDR.");
-        }
-
-        private static string Required(Dictionary<string, object> map, string key)
-        {
-            string value = PortraitJson.String(map, key);
-            if (string.IsNullOrWhiteSpace(value) || value.Contains("\n") || value.Contains("\r"))
-                throw new InvalidDataException("Missing or invalid " + key);
-            return value;
         }
 
         private static IEnumerable<string> Enumerate(string directory)

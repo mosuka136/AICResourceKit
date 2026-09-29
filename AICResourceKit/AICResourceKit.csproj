@@ -14,7 +14,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- 引用来自解决方案根的 ReferenceLibrary，先运行本目录下的 setup-references.ps1 填充 -->
+  <!-- 引用来自解决方案根的 ReferenceLibrary，准备方式见 docs/development.md -->
   <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>..\ReferenceLibrary\0Harmony.dll</HintPath>

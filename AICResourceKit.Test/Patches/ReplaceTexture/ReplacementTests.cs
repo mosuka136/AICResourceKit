@@ -68,13 +68,15 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
                 .Select(target => target.PackageId));
         }
 
-        [Fact]
-        public void Catalog_RejectsDuplicateTargetsInsideOnePack()
+        [Theory]
+        [InlineData("one.png")]
+        [InlineData("missing.png")]
+        public void Catalog_RejectsDuplicateTargetsInsideOnePack(string firstImage)
         {
             WritePng("one.png");
-            WriteManifest("duplicate", """
+            WriteManifest("duplicate", $$"""
                 {"formatVersion":2,"id":"duplicate","targets":[
-                {"type":"texture","loader":"resources","path":"UI/Icon","objectType":"Texture2D","image":"one.png"},
+                {"type":"texture","loader":"resources","path":"UI/Icon","objectType":"Texture2D","image":"{{firstImage}}"},
                 {"type":"texture","loader":"resources","path":"UI/Icon","objectType":"Texture2D","image":"one.png"}]}
                 """);
 

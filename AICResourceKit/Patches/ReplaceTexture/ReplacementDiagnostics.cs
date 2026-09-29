@@ -1,3 +1,4 @@
+using AICResourceKit.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -34,16 +35,16 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static ReplacementDiagnosticTarget Spine(string key, string jsonKey) =>
             new ReplacementDiagnosticTarget("portrait-spine", key, jsonKey, "SkeletonDataAsset",
-                key == null || jsonKey == null ? null : "spine\n" + key + "\n" + jsonKey);
+                key == null || jsonKey == null ? null : ResourceIdentity.Spine(key, jsonKey));
 
         internal static ReplacementDiagnosticTarget Mti(string assetKey, string imageKey) =>
             new ReplacementDiagnosticTarget("mti-one-image", assetKey, imageKey, "Texture",
-                "texture\nmti\n" + assetKey + "\n" + (imageKey ?? ""));
+                ResourceIdentity.Mti(assetKey, imageKey));
 
         internal static ReplacementDiagnosticTarget Resources(string path, string objectType) =>
             new ReplacementDiagnosticTarget("resources", null, path, objectType,
                 objectType == "Sprite" || objectType == "Texture2D"
-                    ? "texture\nresources\n" + path + "\n" + objectType : null);
+                    ? ResourceIdentity.Resources(path, objectType) : null);
 
         internal static ReplacementDiagnosticTarget FromManifest(ReplacementTarget target) =>
             target.Type == "spine" ? Spine(target.SpineKey, target.JsonKey)

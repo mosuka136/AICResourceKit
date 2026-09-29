@@ -68,7 +68,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             previewBuild.Work = null;
             if (error != null) throw error;
             if (previewBuild.Original == null) throw new InvalidOperationException("Original preview data was released.");
-            previewBuild.Candidate = Build(texture, previewBuild.Layers, material, prepared, previewBuild.Original);
+            previewBuild.Candidate = BuildSpineBundle(texture, previewBuild.Layers, material, prepared, previewBuild.Original);
             return PortraitPreviewReadiness.Ready;
         }
 
@@ -95,7 +95,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             var texture = viewer?.getSvTexture();
             if (texture == null) return true;
             string key = viewer.replace_json_key ?? texture.MtiText.default_json_key;
-            Change(texture, key, material, viewer);
+            UpdateSpine(texture, key, material, viewer);
             return spineStates.TryGetValue(texture, out var state) && state.Pending == null
                 && state.Attempt == revision && state.JsonKey == key;
         }
@@ -125,7 +125,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     // 恢复原姿态可能还需加载，先撤销正在显示的临时资源。
                     foreach (var viewer in LiveViewers().Where(viewer => viewer.enabled && viewer.getSvTexture() == pair.Key))
                     {
-                        try { Replay(viewer); }
+                        try { ReplayViewerAnimation(viewer); }
                         catch (Exception ex) { BLog.Error("Could not redraw a revoked resource preview.", ex); }
                     }
                 }

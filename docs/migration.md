@@ -1,0 +1,52 @@
+# 从 BetterExperience 迁移到 AICResourceKit
+
+## 代码归属
+
+| 内容 | 新位置 |
+| --- | --- |
+| 资源替换、Spine 合成、加密读取、加载诊断 | `AICResourceKit/Patches/ReplaceTexture/` |
+| 立绘姿态与资源预览 | `AICResourceKit/Patches/Portrait*.cs` |
+| 资源配置与刷新热键 | `AICResourceKit/BConfigManager/` |
+| 立绘控制界面 | `AICResourceKit/BControlManager/ControlManagerPortrait.cs` |
+| 加密命令行工具 | `AICResourceKit.ResourceEncryptor/` |
+| 回归测试 | `AICResourceKit.Test/` |
+| P01 静态调查结果 | `docs/resource-replacement/ver030g-investigation.json` |
+
+BetterExperience 已移除上述功能及入口，保留马赛克、污渍、移动、战斗等原有功能。AICResourceKit 不引用 BetterExperience 程序集或项目。
+
+## 游戏目录与配置
+
+迁移资源目录和插件时，先退出游戏，再执行下列步骤：
+
+1. 将 BetterExperience 更新为已移除资源替换功能的版本，避免仍使用含旧资源钩子的 DLL。
+2. 安装 `AICResourceKit.dll` 至 `BepInEx/plugins/AICResourceKit/`。
+3. 将原 `BepInEx/plugins/BetterExperience/ReplaceTexture/` 的内容复制到 `BepInEx/plugins/AICResourceKit/ReplaceTexture/`，保持子目录结构。
+4. 启动一次生成 `AICResourceKit.cfg`，在新插件配置页恢复下表设置。可退出游戏后复制同名配置条目的值，不要直接覆盖整个新配置文件。
+
+| 原配置项 | 新配置项 |
+| --- | --- |
+| `Texture.EnableResourceReplacement` | 同名同义，默认关闭 |
+| `Texture.EnableSensitivities` | 同名同义，默认开启 |
+| `Texture.EnabledReplacementPacks` | 同名同义，保留包 ID、启用值和列表顺序 |
+| `Texture.EnableResourceDiagnostics` | 同名同义，默认关闭 |
+| `Texture.ResourceDiagnosticFilter` | 同名同义 |
+| `Hotkey.FlushTextureHotkey` | 同名同义，默认 `Ctrl+T` |
+| `General.EnableBetterExperience` | 新插件使用独立的 `General.EnableMod` |
+
+新插件不自动读取旧配置或旧资源目录。日志位于 `BepInEx/plugins/AICResourceKit/logs/`，诊断报告为其中的 `resource-diagnostics.json`。立绘控制是会话状态，不写入存档。
+
+## 格式兼容
+
+`.replacement.json` 保持 v2，目标标识、包 ID、层叠顺序及相对依赖路径保持原语义。BEREENC v1 文件头、密钥编号和加解密参数保留，已有密文无需重新加密。
+
+加密工具的新命令：
+
+```powershell
+dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEncryptor.csproj -- encrypt --input "D:/Assets/ReplaceTexture" --output "D:/Assets/EncryptedReplaceTexture"
+```
+
+## 实现进度
+
+P01 的调查、默认关闭的诊断和测试已迁入；未进行实机入口采集和画面验收。后续已完成 P02 契约草案，见 [资源目标与清单契约](resource-contract.md)；P03 及后续步骤继续逐项确认后实施。
+
+后续实施顺序见[资源工具计划](planning/noel-resource-tools.md)。静态调查 JSON 保留采集时的 `pluginVersion=2.1.1`，它是历史证据元数据；新插件版本为 `1.0.0`。

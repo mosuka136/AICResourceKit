@@ -1,0 +1,623 @@
+{
+    "vectorVersion": 1,
+    "cases": [
+        {
+            "name": "same-image-different-containers",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_other",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "texture\nmti\nMTI_title\nkey_noel",
+                "texture\nmti\nMTI_other\nkey_noel"
+            ],
+            "dependencies": [
+                "image:shared/page.png",
+                "image:shared/page.png"
+            ]
+        },
+        {
+            "name": "multiple-json-and-historical-key",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle",
+                        "display": {
+                            "offsetX": 1
+                        }
+                    },
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": 1
+                        }
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine\nstand_battle\nstand_battle",
+                "spine\nstand_battle\nstand_battle.old"
+            ],
+            "dependencies": []
+        },
+        {
+            "name": "pxl-image-key-omitted",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "PxlNoel/noel.pxls.bytes.texture_0",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "texture\nmti\nPxlNoel/noel.pxls.bytes.texture_0\n"
+            ],
+            "dependencies": [
+                "image:shared/page.png"
+            ]
+        },
+        {
+            "name": "pxl-image-key-null",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "PxlNoel/noel.pxls.bytes.texture_0",
+                        "imageKey": null,
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "texture\nmti\nPxlNoel/noel.pxls.bytes.texture_0\n"
+            ],
+            "dependencies": [
+                "image:shared/page.png"
+            ]
+        },
+        {
+            "name": "pxl-image-key-empty",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "PxlNoel/noel.pxls.bytes.texture_0",
+                        "imageKey": "",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "texture\nmti\nPxlNoel/noel.pxls.bytes.texture_0\n"
+            ],
+            "dependencies": [
+                "image:shared/page.png"
+            ]
+        },
+        {
+            "name": "resources-distinguish-types",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "resources",
+                        "path": "UI/Icon",
+                        "objectType": "Sprite",
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "resources",
+                        "path": "UI/Icon",
+                        "objectType": "Texture2D",
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "texture\nresources\nUI/Icon\nSprite",
+                "texture\nresources\nUI/Icon\nTexture2D"
+            ],
+            "dependencies": [
+                "image:page.png",
+                "image:page.png"
+            ]
+        },
+        {
+            "name": "explicit-shared-dependencies",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "sample",
+                        "jsonKey": "sample",
+                        "image": "../shared/page.png",
+                        "atlas": "../shared/page.atlas",
+                        "spine": {
+                            "json": "../shared/page.json",
+                            "replace": [
+                                "all"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine\nsample\nsample"
+            ],
+            "dependencies": [
+                "image:../shared/page.png",
+                "atlas:../shared/page.atlas",
+                "json:../shared/page.json"
+            ]
+        },
+        {
+            "name": "metadata-not-runtime-identity",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": 1
+                        },
+                        "sourceObjectId": "catalog-object-1",
+                        "samplePackId": "author-example"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine\nstand_battle\nstand_battle.old"
+            ],
+            "dependencies": []
+        },
+        {
+            "name": "legacy-uppercase-discriminators",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "TEXTURE",
+                        "loader": "MTI",
+                        "assetKey": "MTI_title",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": false,
+            "identities": [
+                "texture\nmti\nMTI_title\nkey_noel"
+            ],
+            "dependencies": [
+                "image:shared/page.png"
+            ]
+        },
+        {
+            "name": "effects-empty-means-auto",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "sample",
+                        "jsonKey": "sample",
+                        "effects": {}
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine\nsample\nsample"
+            ],
+            "dependencies": []
+        },
+        {
+            "name": "unknown-version",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "unknown-type",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "video",
+                        "assetKey": "Tuto_mp4/sample",
+                        "clipKey": "sample"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "unknown-loader",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "direct-mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "duplicate-target",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": "key_noel",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": true
+        },
+        {
+            "name": "null-empty-duplicate-identity",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": null,
+                        "image": "shared/page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "MTI_title",
+                        "imageKey": "",
+                        "image": "shared/page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": true
+        },
+        {
+            "name": "missing-image",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "mti",
+                        "assetKey": "sample"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "empty-targets",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": []
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "nonobject-target",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    null
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "unknown-object-type",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "resources",
+                        "path": "UI/Icon",
+                        "objectType": "VideoClip",
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "empty-spine-noop",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "sample",
+                        "jsonKey": "sample"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "fallback-only-noop",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "sample",
+                        "jsonKey": "sample",
+                        "compatibility": {
+                            "animationFallback": "stand"
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "incompatible-sections",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": 1
+                        },
+                        "spine": {
+                            "json": "page.json",
+                            "replace": [
+                                "skins",
+                                "attachments"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "all-with-another-section",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": 1
+                        },
+                        "spine": {
+                            "json": "page.json",
+                            "replace": [
+                                "all",
+                                "bones"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "missing-sections",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": 1
+                        },
+                        "spine": {
+                            "json": "page.json",
+                            "replace": []
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "negative-scale",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "scaleMultiplier": -1
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "bad-display-number",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": "1"
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "bad-effect",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "sample-pack",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_battle",
+                        "jsonKey": "stand_battle.old",
+                        "display": {
+                            "offsetX": 1
+                        },
+                        "effects": {
+                            "dirt": "guess"
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "display-single-overflow",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "overflow",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "sample",
+                        "jsonKey": "sample",
+                        "display": {
+                            "offsetX": 1e+100
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

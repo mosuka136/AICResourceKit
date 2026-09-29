@@ -1,48 +1,41 @@
 # AICResourceKit
 
-Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Harmony 和 UnityModBase。主插件使用 .NET Framework 4.7.2，测试及加密工具使用 .NET 8。
+Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Harmony 和 UnityModBase。
 
-## 功能
+支持 v2 资源包、既有 MTI 单图与 Unity Resources 图片替换、主立绘 Spine 分段合成、包排序、敏感内容开关、刷新、立绘控制与临时预览。附带资源加载诊断、清单契约和命令行加密工具。
 
-- 发现和校验 v2 `.replacement.json` 资源包，按配置列表顺序组合，支持 Sensitive 目录授权。
-- 沿用已有 MTI 单图、Unity Resources 和主立绘 Spine 替换，支持 Spine 分段合成、兼容映射和显示参数。
-- 资源刷新、异步准备、失败隔离、恢复与释放。
-- 主界面立绘姿态选择、状态编辑、锁定与资源包短暂预览。
-- 默认关闭的 P01 资源加载诊断及 `ver030g` 静态调查清单。
-- 独立命令行加密工具，兼容原 BEREENC v1 密文。
+## 快速使用
 
-调查清单列出的加载入口不代表已实现对应替换。直接 MTI、多页 PXL、普通 SpineViewer、MPCC 和视频等后续能力仍按计划逐项实现。
+1. 安装 BepInEx 5 和 UnityModBase，将 `AICResourceKit.dll` 放入游戏的 `BepInEx/plugins/AICResourceKit/`。
+2. 启动游戏，在 UnityModBase 配置界面选择 AICResourceKit。总开关 `EnableMod` 需要在启动时开启；启动时关闭过它，应开启后重启游戏。
+3. 将资源包放入 `BepInEx/plugins/AICResourceKit/ReplaceTexture/`，开启“启用资源替换”，在资源包列表中启用需要的包。列表越靠后的包优先。
+4. 修改资源文件后按默认热键 `Ctrl+T` 重新扫描。
 
-## 构建
+配置文件为 `BepInEx/plugins/AICResourceKit/AICResourceKit.cfg`。已有 BetterExperience 资源包可按[迁移说明](docs/migration.md)转入。
 
-先从安装了 BepInEx 与 UnityModBase 的游戏填充引用：
+## 正式文档
+
+| 任务 | 文档 |
+| --- | --- |
+| 安装、配置、制作最小资源包、校验和使用公共 API | [使用说明](docs/usage.md) |
+| Spine 分段替换、兼容映射、显示参数与完整包格式 | [资源包参考](docs/resource-packs.md) |
+| 确认实际加载入口、读取诊断报告 | [资源加载诊断](docs/diagnostics.md) |
+| 查字段语义、身份匹配、Schema 和地址草案 | [资源契约](docs/resource-contract.md) |
+| 准备引用、构建、修改代码和维护文档 | [开发说明](docs/development.md) |
+| 查看全部文档与适用范围 | [文档目录](docs/README.md) |
+
+当前可安装格式为 `formatVersion: 2`，Spine 使用单页 atlas、straight-alpha PNG 和 Spine 4.1 JSON。新地址、多页映射及调查清单不代表对应替换入口已经实现；各项能力见[诊断说明](docs/diagnostics.md)，后续设计见[资源工具计划](docs/planning/noel-resource-tools.md)。
+
+## 构建与测试
+
+先按[开发说明](docs/development.md)填充仓库根目录的 `ReferenceLibrary/`，然后执行：
 
 ```powershell
-./AICResourceKit/setup-references.ps1 -GameDir "D:/Games/AliceInCradle"
 dotnet build AICResourceKit/AICResourceKit.csproj -c Debug -m:1 -nr:false
 dotnet test AICResourceKit.Test/AICResourceKit.Test.csproj -c Debug -m:1 -nr:false
 ```
 
-引用位于本项目 `ReferenceLibrary/`，不依赖 BetterExperience 工程。构建产物为 `AICResourceKit/bin/Debug/AICResourceKit.dll`。
-
-测试工程引用 net472 插件时可能出现 NU1702 框架兼容性警告。单元测试覆盖可在 .NET 8 执行的逻辑与方法签名，Unity 画面及实际加载仍需游戏验证。
-
-## 使用
-
-1. 安装 BepInEx 5 与 UnityModBase 前置，将插件放入 `BepInEx/plugins/AICResourceKit/`。
-2. 启动游戏，在 UnityModBase 配置界面选择 AICResourceKit。配置文件位于 `BepInEx/plugins/AICResourceKit/AICResourceKit.cfg`。
-3. 将资源包放入 `BepInEx/plugins/AICResourceKit/ReplaceTexture/`，开启“启用资源替换”，按需选择和排序资源包。
-4. 修改资源后按默认热键 `Ctrl+T` 刷新。
-
-插件和 Harmony 标识为 `com.buele.aicresourcekit`。更新后的 BetterExperience 可同时使用，资源替换由 AICResourceKit 管理。
-
-## 文档
-
-- [从 BetterExperience 迁移](MIGRATION.md)
-- [资源包格式与自定义立绘](CUSTOM_PORTRAIT_REPLACEMENT.md)
-- [P01 资源加载调查与诊断](RESOURCE_LOADING_DIAGNOSTICS.md)
-- [后续实现计划](NOEL_RESOURCE_TOOL_PLAN.md)
-- [开发说明](AICResourceKit/README-DEV.md)
+主插件目标为 .NET Framework 4.7.2，测试和加密工具为 .NET 8。主插件产物位于 `AICResourceKit/bin/Debug/AICResourceKit.dll`。测试不代替 Unity 游戏中的实际加载和画面检查。
 
 ## 许可证
 

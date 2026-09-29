@@ -367,12 +367,7 @@ FodyWeavers.xsd
 # Ignore ReferenceLibrary folder
 /ReferenceLibrary
 
-# AI Agent
+# Local agent and investigation artifacts
 .github/
 .zcode/
-docs/
-
-# Others
-*.md
-!README.md
-!README_EN.md
+/docs/local/

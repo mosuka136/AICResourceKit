@@ -1,3 +1,4 @@
+using AICResourceKit.Contracts;
 using AICResourceKit.Patches.ReplaceTexture;
 using System.Security.Cryptography;
 
@@ -59,48 +60,12 @@ namespace AICResourceKit.ResourceEncryptor
             string sensitive = Path.Combine(root, "Sensitive");
             foreach (string file in files)
             {
-                var manifest = ManifestJson.Parse(ReplacementResourceIO.ReadText(file));
-                if (ManifestJson.Integer(ManifestJson.Get(manifest, "formatVersion")) != 2)
-                    throw new InvalidDataException("Unsupported replacement manifest version: " + file);
-                string id = Required(manifest, "id");
-                if (!ids.Add(id)) throw new InvalidDataException("Duplicate replacement id: " + id);
-                var targets = ManifestJson.Array(ManifestJson.Get(manifest, "targets"));
-                if (targets.Count == 0) throw new InvalidDataException("Replacement package has no targets: " + id);
+                var manifest = ResourceManifest.Parse(ManifestJson.Parse(ReplacementResourceIO.ReadText(file)));
+                if (!ids.Add(manifest.Id)) throw new InvalidDataException("Duplicate replacement id: " + manifest.Id);
                 Add(sources, file);
-                var identities = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var item in targets)
-                {
-                    var target = ManifestJson.Object(item);
-                    string type = Required(target, "type").ToLowerInvariant();
-                    string identity;
-                    if (type == "texture")
-                    {
-                        string loader = Required(target, "loader").ToLowerInvariant();
-                        if (loader == "mti") identity = "texture\nmti\n" + Required(target, "assetKey") + "\n" + ManifestJson.String(target, "imageKey", "");
-                        else if (loader == "resources")
-                        {
-                            string objectType = Required(target, "objectType");
-                            if (objectType != "Texture2D" && objectType != "Sprite") throw new InvalidDataException("Invalid Resources objectType.");
-                            identity = "texture\nresources\n" + Required(target, "path") + "\n" + objectType;
-                        }
-                        else throw new InvalidDataException("Texture loader must be mti or resources.");
-                        AddDependency(root, sensitive, file, Required(target, "image"), "image", sources);
-                    }
-                    else if (type == "spine")
-                    {
-                        identity = "spine\n" + Required(target, "key") + "\n" + Required(target, "jsonKey");
-                        foreach (string kind in new[] { "image", "atlas" })
-                        {
-                            string relative = ManifestJson.String(target, kind);
-                            if (relative != null) AddDependency(root, sensitive, file, relative, kind, sources);
-                        }
-                        object spine = ManifestJson.Get(target, "spine");
-                        if (spine != null)
-                            AddDependency(root, sensitive, file, Required(ManifestJson.Object(spine), "json"), "json", sources);
-                    }
-                    else throw new InvalidDataException("Target type must be texture or spine.");
-                    if (!identities.Add(identity)) throw new InvalidDataException("Duplicate target in package: " + id);
-                }
+                foreach (var target in manifest.Targets)
+                    foreach (var dependency in target.Dependencies)
+                        AddDependency(root, sensitive, file, dependency.Path, dependency.Kind, sources);
             }
             return sources;
         }
@@ -135,14 +100,6 @@ namespace AICResourceKit.ResourceEncryptor
         {
             using (var stream = ReplacementResourceIO.OpenRead(path))
             using (var sha = SHA256.Create()) return sha.ComputeHash(stream);
-        }
-
-        private static string Required(Dictionary<string, object> value, string key)
-        {
-            string text = ManifestJson.String(value, key);
-            if (string.IsNullOrWhiteSpace(text) || text.Contains('\r') || text.Contains('\n'))
-                throw new InvalidDataException("Missing or invalid " + key);
-            return text;
         }
 
         private static IEnumerable<string> Enumerate(string directory)

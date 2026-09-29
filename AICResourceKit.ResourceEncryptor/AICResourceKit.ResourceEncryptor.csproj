@@ -7,6 +7,7 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="..\AICResourceKit\Contracts\*.cs" Link="Contracts\%(Filename)%(Extension)" />
         <Compile Include="..\AICResourceKit\Patches\ReplaceTexture\ReplacementResourceIO.cs" Link="Shared\ReplacementResourceIO.cs" />
         <Compile Include="..\AICResourceKit\Patches\ReplaceTexture\ReplacementResourceKeys.cs" Link="Shared\ReplacementResourceKeys.cs" />
         <Compile Include="..\AICResourceKit\Patches\ReplaceTexture\ReplacementResourcePaths.cs" Link="Shared\ReplacementResourcePaths.cs" />

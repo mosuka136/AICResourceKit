@@ -1,3 +1,4 @@
+using AICResourceKit.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal ReplacementTarget Texture(string loader, string key, string imageKey, string objectType) =>
             targets.LastOrDefault(target => target.Type == "texture" && target.Loader == loader
-                && (loader == "mti" ? target.AssetKey == key && (target.ImageKey == null || target.ImageKey == imageKey)
+                && (loader == "mti" ? ResourceIdentity.MatchesMti(target.AssetKey, target.ImageKey, key, imageKey)
                     : target.ResourcePath == key && target.ObjectType == objectType));
 
         internal bool Invalid(string identity) => invalid.Contains(identity);
@@ -67,8 +68,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
             && unidentified.SetEquals(other.unidentified);
 
         private static string TextureIdentity(string loader, string key, string imageKey, string objectType) =>
-            loader == "mti" ? "texture\nmti\n" + key + "\n" + (imageKey ?? "")
-                : "texture\nresources\n" + key + "\n" + objectType;
+            loader == "mti" ? ResourceIdentity.Mti(key, imageKey)
+                : ResourceIdentity.Resources(key, objectType);
     }
 
     internal sealed class ReplacementSelectionDelay
