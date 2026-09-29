@@ -1,0 +1,110 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="TestResults\**" />
+    <EmbeddedResource Remove="TestResults\**" />
+    <None Remove="TestResults\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\docs\resource-replacement\ver030g-investigation.json" Link="Fixtures\ver030g-investigation.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AICResourceKit\AICResourceKit.csproj" />
+    <ProjectReference Include="..\AICResourceKit.ResourceEncryptor\AICResourceKit.ResourceEncryptor.csproj" Aliases="ResourceEncryptor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="pixelliner">
+      <HintPath>..\ReferenceLibrary\pixelliner.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="spine-unity">
+      <HintPath>..\ReferenceLibrary\spine-unity.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>..\ReferenceLibrary\0Harmony.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="better">
+      <HintPath>..\ReferenceLibrary\better.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Better.UnsafeGeneric">
+      <HintPath>..\ReferenceLibrary\Better.UnsafeGeneric.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\ReferenceLibrary\Assembly-CSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>..\ReferenceLibrary\BepInEx.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\ReferenceLibrary\Unity.InputSystem.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\ReferenceLibrary\UnityEngine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\ReferenceLibrary\UnityEngine.CoreModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\ReferenceLibrary\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>..\ReferenceLibrary\UnityEngine.Physics2DModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+      <HintPath>..\ReferenceLibrary\UnityEngine.VideoModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\ReferenceLibrary\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\ReferenceLibrary\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityModBase">
+      <HintPath>..\ReferenceLibrary\UnityModBase.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="unsafeAssem">
+      <HintPath>..\ReferenceLibrary\unsafeAssem.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

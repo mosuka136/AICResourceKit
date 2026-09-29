@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEncryptor.csproj" />
+  <Project Path="AICResourceKit.Test/AICResourceKit.Test.csproj" />
+  <Project Path="AICResourceKit/AICResourceKit.csproj" />
+</Solution>
