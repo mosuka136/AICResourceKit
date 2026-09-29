@@ -2,7 +2,7 @@
 
 Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Harmony 和 UnityModBase。
 
-支持 v2 资源包、既有 MTI 单图与 Unity Resources 图片替换、主立绘 Spine 分段合成、包排序、敏感内容开关、刷新、立绘控制与临时预览。附带资源加载诊断、清单契约和命令行加密工具。
+支持 v2 资源包、MTI 直接图片、单图容器与 Unity Resources 图片替换、主立绘 Spine 分段合成、包排序、敏感内容开关、刷新、立绘控制与临时预览。附带资源加载诊断、清单契约和命令行加密工具。
 
 ## 快速使用
 

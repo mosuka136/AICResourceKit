@@ -59,7 +59,7 @@ MTI 保留历史行为：
 
 省略/null 与显式空字符串的**身份串相同、匹配谓词不同**。因此不能在一个包内把它们当成两个不同目标。为保持兼容，P02 不重新编码旧身份。
 
-PXL 主纹理的 `MTI.LoadContainerOneImage` 调用省略 `image_key`，使用省略/null 的清单形式；不要填写 `load_key`、角色显示名或导出 PNG 文件名。直接 `MTI.LoadImage` 可继续用容器与真实图片键表达 v2 目标，实际拦截与消费者重绑属于 P03。
+PXL 主纹理的 `MTI.LoadContainerOneImage` 调用省略 `image_key`，使用省略/null 的清单形式；不要填写 `load_key`、角色显示名或导出 PNG 文件名。直接 `MTI.LoadImage` 使用容器与真实图片键表达 v2 目标，已接入 MImage 及缓存材质的更新；MTIOneImage 保留已有入口。Sprite 支持范围和首载要求见[使用说明](usage.md)。
 
 ## v2 字段、依赖与优先级
 

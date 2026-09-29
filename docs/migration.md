@@ -47,6 +47,6 @@ dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEnc
 
 ## 实现进度
 
-P01 的调查、默认关闭的诊断和测试已迁入；未进行实机入口采集和画面验收。后续已完成 P02 契约草案，见 [资源目标与清单契约](resource-contract.md)；P03 及后续步骤继续逐项确认后实施。
+P01 的调查、默认关闭的诊断和测试已迁入；未进行实机入口采集和画面验收。后续已完成 P02 契约草案，见 [资源目标与清单契约](resource-contract.md)；P03 已补充直接 MTI 入口和未打包 Sprite 处理，实机验证与待查入口状态见[资源工具计划](planning/noel-resource-tools.md)；P04 及后续步骤继续逐项确认后实施。
 
 后续实施顺序见[资源工具计划](planning/noel-resource-tools.md)。静态调查 JSON 保留采集时的 `pluginVersion=2.1.1`，它是历史证据元数据；新插件版本为 `1.0.0`。

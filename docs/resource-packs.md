@@ -4,7 +4,7 @@
 
 开发调查可使用默认关闭的[资源加载诊断工具](diagnostics.md)，按目标导出实际入口与候选结果。能力草表区分代码证据和游戏验证，不改变本文的包格式与支持范围。
 
-## 支持范围
+## Spine 支持范围
 
 - Spine 4.1 JSON
 - 单页 atlas
@@ -16,6 +16,14 @@
 - 支持 `auto`、`legacy`、`disabled` 三种污渍效果策略
 
 不支持 Spine 二进制格式、多页 atlas、自定义情绪状态机、散装 PNG 和 v1 `.portrait.json`。
+
+## 普通图片与 Sprite
+
+MTI 直接图片与单图容器按 `assetKey + imageKey` 定位，Resources 按 `path + objectType` 定位，均使用 v2 `type=texture`。清单示例及首载、刷新操作见[使用说明第 2.5、2.6 节](usage.md)。
+
+候选 PNG 必须与原始整张纹理同尺寸。未打包 Sprite 保留逻辑 rect、pivot、border、PPU 和原顶点/三角形，检查 UV 后再创建；打包或旋转布局当前不支持。Sprite 裁片尺寸不等于原纹理尺寸，不能仅按导出的透明边界重新创建 FullRect Sprite。
+
+已经返回给调用方的 Resources 替换对象会在刷新和恢复原图时保留引用；原始资源卸载时再释放替换对象。首次加载时未启用包的消费者需要重新加载对应界面才能取得替换引用。
 
 ## 安装位置
 

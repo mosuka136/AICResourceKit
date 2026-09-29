@@ -6,14 +6,14 @@
 
 调查直接使用游戏的 `Assembly-CSharp.dll`、`unsafeAssem.dll`、`pixelliner.dll`，已确认与插件引用程序集一致。静态清单保存程序集 SHA-256，运行时报告保存实际加载程序集 MVID。游戏原件、完整反编译源码和本机调查中间文件不纳入版本管理。
 
-## 能力草表
+## 当前能力与验证范围
 
 | 路径 | 当前替换能力 | 证据与限制 |
 |---|---|---|
 | 主立绘 `SvTexture` / `SpineViewerNel` | 既有 v2 单页 Spine | 通用 `key + jsonKey`，没有四姿态白名单；37 组均登记，逐组实机未验证 |
 | `MTI.LoadContainerOneImage` | 既有 v2 主纹理 | PXL 省略 `image_key`，目标保持空值；`load_key` 是持有者标记 |
-| `MTI.LoadImage` | 本项只观察 | `MTI_title` 的 `key_noel`、`difficulty` 调用已确认；替换和长期持有消费者待 P03 |
-| `Resources.Load` | 既有 v2 Texture2D / Sprite | 使用路径和类型；两个目录 Sprite 尚无直接消费者，不能编造 Resources 路径 |
+| `MTI.LoadImage` | v2 直接图片替换 | 按容器和图片键匹配，更新 MImage 及缓存材质；ver030g 已验证 key_noel、difficulty 的首次加载与画面；刷新、关闭和释放仍待实机核对 |
+| `Resources.Load` | v2 Texture2D / 未打包 Sprite | Sprite 保留原网格与 UV；打包/旋转布局拒绝。两个目录 Sprite 的实际消费入口仍未确认 |
 | PXL 内嵌、打包页和额外页 | 本项只观察 | 记录图片 id/id2、I/P、打包页序号、外部页索引和页类型；完整替换待 P04 |
 | 普通 `SpineViewer` / Fatal | 本项只观察资源加载 | 不经过主立绘适配器；部分图片经过 MTI 不代表骨架已接入 |
 | PICT / EF_PICT | 本项只观察区域查找 | `SpvLoader.GetImage` 直接取 atlas 区域，能够使用默认骨架以外的图片 |
@@ -36,12 +36,18 @@
 
 `MTI.resources_path` 由构造器按 `Assets/Editor/AssetBundlesSrc/<原始 key>/` 保存。观察器去除固定前后缀取回参数，不从磁盘名或 `Texture.name` 推断身份。PXL 的 `external_png_header` 只记录实际字段值，可能仍为默认值，不视为已定版的容器身份。
 
-- `wplmode_` 位于 `mti_title_wpl.dat`，基线 ver030g 程序集未定位到对应 `LoadImage` 调用。计划中三张标题图均已确认的判断需要修正，需继续检查标题分支与动态键。
+- `wplmode_` 位于 `mti_title_wpl.dat`，基线 ver030g 程序集未定位到对应 `LoadImage` 调用。通用匹配测试中的该键只验证身份隔离，不能证明这个入口已经执行；需继续检查标题分支与动态键。
 - `noel_bassrobe.pxls` 含内嵌图片，但不在本基线 `MTR.Anoel_pxls` 中，实际调用及加载条件待查。
 - `mgm_bun.pxls.bytes.texture_0` 的 Texture2D 依赖经过小游戏 PXL 路径，但同包 Sprite 的使用没有证据。`damage_backvoreenemy` Sprite 和 `.atlas` 同样保留待查，不伪造骨架 JSON。
 - 主纹理加载不能证明 part、mask、混合页均已支持。`MTIOneImage.ReplaceExternalPngForPxl` 依赖包内对象数量，数量为 2 时通过 `_1` 加载额外图片；含 Sprite 的包尤其需要核对。
 - MPCC 的已知解码器由编辑器文件选择器调用，不能推断游戏会自动读取 `StreamingAssets/mobpcc`。五个文件继续保留独立待确认状态。
 - 80 组 PXL 外部主纹理键来自目录候选与 MTRX 通用公式。未逐项观察实际参数、异步到达和旧页消费者；使用时必须同时读取各组 `evidence` 和 `pendingReasons`。
+
+P03 对 `SceneTitleTemp.prepareMti` / `initTitleLogo`、`UiTitleDifficultyConfirm` 和 `MImage.Tx` 的源码复核确认：`key_noel`、`difficulty` 使用 `MTI_title` 容器，并将 `MImage.getMtr()` 的材质交给绘制器。`Tx` 赋值会同步改写这些缓存材质的主纹理。直接加载入口与单图容器分开登记，容器 `Dispose` / `UnloadAll` 前清理替换。
+
+两个待确认 Sprite 的导出元数据也不能当作 Resources 地址：`mgm_bun.pxls.bytes.texture_0` 的逻辑 rect 为 512 × 1024，实际裁切高约 641；`damage_backvoreenemy` 的逻辑 rect 为 384 × 968，网格边界另有细小裁切。重建时保留逻辑画布和原网格，不能使用裁片 PNG 的尺寸推导画布。尚未找到这两个 Sprite 的直接消费者，因此没有增加猜测性的专用入口。
+
+机器调查清单保留 P01 采集时的状态，不回写为运行成功。P03 的当前使用方式见[使用说明第 2.5、2.6 节](usage.md)。
 
 方法签名、读取参数、缓存对象、消费者与释放时机详见机器清单的 `routes`。每组 `sources` 保留对象 ID、容器、序列化文件及字符串形式的 64 位 pathId。共享对象可出现在多组，一组也可关联多个目标。每组最多保留 6 条来源引用位置，`referenceCount` 为完整去重后的引用数。
 
@@ -67,7 +73,7 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 
 ## 状态语义
 
-诊断 `reportVersion=1` 与资源包 `formatVersion` 无关。新观察地址的 `runtimeIdentity=null`，不提前定义新包类型。
+诊断 `reportVersion=1` 与资源包 `formatVersion` 无关。直接 MTI 图片使用既有 v2 身份；尚未接入替换的新观察地址仍为 `runtimeIdentity=null`，不提前定义新包类型。
 
 | 字段或阶段 | 含义 |
 |---|---|
@@ -83,8 +89,16 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 
 应用、失败、恢复和释放分别保留，历史成功不能证明当前仍在显示。MPCC 解码参数没有文件路径，内容名称不能替代文件身份。视频 `hasClip` 与内部状态不代表已经观看或验证循环、结束。`not-observed` 不等于资源不存在或已排除。
 
+### 已发现标题资源包但没有替换记录
+
+对于 `MTI_title/key_noel` 和 `MTI_title/difficulty`，如果只有清单 `discovered` 和 `MTI.LoadImage` 的 `entry-hit`，先检查已启用资源替换及对应包，并确认游戏实际加载的 DLL 已包含直接 MTI 图片替换功能。旧版本诊断钩子也能记录 `entry-hit`，这本身不能证明替换入口已接入。
+
+检查安装目录内 DLL 的符号链接目标及构建配置，部署后重启游戏；操作见[安装说明](usage.md#11-安装插件)。重新采集当前会话报告，正常应用会出现 `candidate-applied`，结果为 `mimage-texture-assigned`；失败时查看 `candidate-failed` 的原因及插件日志。
+
 ## 验证范围
 
 自动测试覆盖诊断筛选、聚合、导出、错误处理、方法签名和调查清单。构建环境、引用 DLL 与测试命令见[开发说明](development.md)。
 
-ver030g 静态清单尚未记录实机入口命中和画面验收，相关计数为 0。需要在目标场景开启诊断获取实际报告，再检查替换效果；静态调查、方法签名与 `candidate-applied` 均不能独立证明画面正确。
+ver030g 已使用 `sakura-furisode-title-v1` 验证 `MTI_title/key_noel` 和 `MTI_title/difficulty`：两项均记录 `candidate-applied / mimage-texture-assigned`，标题和难度选择界面显示对应替换图片。该验证覆盖首次加载和画面，不包括刷新、关闭与释放。
+
+P01 静态清单保留采集时的状态和计数，不自动同步后续实机验证。其他目标仍需在对应场景采集实际报告并检查画面；静态调查、方法签名与 `candidate-applied` 均不能独立证明画面正确。

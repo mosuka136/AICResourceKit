@@ -10,12 +10,12 @@ using Object = UnityEngine.Object;
 
 namespace AICResourceKit.Patches.ReplaceTexture
 {
-    // 跟踪 MTIOneImage 容器，更新纹理并通知已有立绘消费者。
+    // 单图容器与直接 LoadImage 共用应用流程；MImage.Tx 同时更新游戏缓存的材质。
     internal static partial class ReplacementRuntime
     {
         private sealed class MtiRecord
         {
-            internal MTIOneImage Container;
+            internal MTI Container;
             internal string AssetKey;
             internal string ImageKey;
             internal MImage Image;
@@ -29,6 +29,53 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static readonly Dictionary<MTIOneImage, MtiRecord> mtiRecords = new Dictionary<MTIOneImage, MtiRecord>();
         private static readonly FieldInfo mtiImage = AccessTools.Field(typeof(MTIOneImage), "LImage_");
+        private static readonly Dictionary<MTI, Dictionary<string, MtiRecord>> directMtiRecords =
+            new Dictionary<MTI, Dictionary<string, MtiRecord>>();
+
+        private static IEnumerable<MtiRecord> AllMtiRecords() => mtiRecords.Values
+            .Concat(directMtiRecords.Values.SelectMany(records => records.Values));
+
+        internal static void RegisterMtiImage(MTI container, string imageKey, MImage image)
+        {
+            if (!initialized || !MtiResourceAddress.UsesDirectImageEntry(container)
+                || imageKey == null || image?.Tx == null) return;
+            string assetKey = MtiResourceAddress.ContainerKey(container.resources_path);
+            if (assetKey == null) return;
+            if (!directMtiRecords.TryGetValue(container, out var records))
+            {
+                records = new Dictionary<string, MtiRecord>(StringComparer.Ordinal);
+                directMtiRecords.Add(container, records);
+            }
+            if (!records.TryGetValue(imageKey, out var record))
+            {
+                record = new MtiRecord { Container = container, AssetKey = assetKey, ImageKey = imageKey, Image = image };
+                records.Add(imageKey, record);
+            }
+            else if (!ReferenceEquals(record.Image, image))
+            {
+                Restore(record);
+                record.Image = image;
+                record.Original = null;
+                record.Attempt = -1;
+            }
+            // 首次返回前应用候选；后续缓存命中不重复读取或创建纹理。
+            ApplyMtiTexture(record, firstAccess: true);
+        }
+
+        internal static void ReleaseMti(MTI container)
+        {
+            if (container == null) return;
+            if (container is MTIOneImage single && mtiRecords.TryGetValue(single, out var primary))
+            {
+                mtiRecords.Remove(single);
+                Restore(primary, refreshUsers: false);
+            }
+            if (directMtiRecords.TryGetValue(container, out var records))
+            {
+                directMtiRecords.Remove(container);
+                foreach (var record in records.Values) Restore(record, refreshUsers: false);
+            }
+        }
 
         private static void RefreshMtiSpineTextures(ReplacementSelection previous, bool force)
         {
@@ -57,14 +104,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void RetryMtiRecords()
         {
-            foreach (var record in mtiRecords.Values.ToArray()) ApplyMtiTexture(record);
+            foreach (var record in AllMtiRecords().ToArray()) ApplyMtiTexture(record);
         }
 
-        private static void ApplyMtiTexture(MtiRecord record)
+        private static void ApplyMtiTexture(MtiRecord record, bool firstAccess = false)
         {
-            if (selectionDelay.Waiting) return;
+            if (selectionDelay.Waiting && !firstAccess) return;
             if (record.Attempt == revision && record.Image != null && record.Pending == null) return;
-            var image = mtiImage.GetValue(record.Container) as MImage;
+            var image = record.Container is MTIOneImage ? mtiImage.GetValue(record.Container) as MImage : record.Image;
             if (image == null || image.Tx == null) return;
             record.Image = image;
             if (record.Original == null) record.Original = image.Tx;
@@ -96,16 +143,27 @@ namespace AICResourceKit.Patches.ReplaceTexture
             try
             {
                 if (record.Replacement != null && !CanRetain(new[] { record.Source }, record.SourceIdentity)) Restore(record);
-                if (record.Pending == null)
+                byte[] bytes;
+                if (firstAccess && record.Replacement == null)
                 {
-                    record.Pending = PrepareTexture(layer);
-                    ReplacementDiagnosticRuntime.Mti(record.AssetKey, record.ImageKey, "candidate-pending", "preparing", layer.PackageId);
-                    record.Attempt = revision;
+                    record.Pending?.Dispose();
+                    record.Pending = null;
+                    bytes = ReplacementPreparation.Texture(layer, PatchInfo.ReplaceImagePath,
+                        PatchInfo.ReplaceSensitiveImagePath, selection.AllowSensitive, default(System.Threading.CancellationToken));
                 }
-                if (!record.Pending.IsCompleted || !ClaimUpload()) return;
-                record.Pending.TryTake(out var bytes, out var error);
-                record.Pending = null;
-                if (error != null) throw error;
+                else
+                {
+                    if (record.Pending == null)
+                    {
+                        record.Pending = PrepareTexture(layer);
+                        ReplacementDiagnosticRuntime.Mti(record.AssetKey, record.ImageKey, "candidate-pending", "preparing", layer.PackageId);
+                        record.Attempt = revision;
+                    }
+                    if (!record.Pending.IsCompleted || !ClaimUpload()) return;
+                    record.Pending.TryTake(out bytes, out var error);
+                    record.Pending = null;
+                    if (error != null) throw error;
+                }
                 ValidateCurrent(layer);
                 record.Replacement = LoadStableTexture(bytes, record.Original, record.Replacement);
                 record.Source = layer.Owner;
@@ -136,7 +194,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             }
         }
 
-        private static void Restore(MtiRecord record)
+        private static void Restore(MtiRecord record, bool refreshUsers = true)
         {
             record.Pending?.Dispose();
             record.Pending = null;
@@ -148,7 +206,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             record.SourceIdentity = null;
             if (changed)
             {
-                RefreshMtiUsers(record);
+                if (refreshUsers) RefreshMtiUsers(record);
                 ReplacementDiagnosticRuntime.Mti(record.AssetKey, record.ImageKey, "restored",
                     record.Original == null ? "replacement-disposed-original-unavailable" : "original-restored");
             }
@@ -156,7 +214,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void InvalidateMtiSelection(ReplacementSelection previous, bool force)
         {
-            foreach (var record in mtiRecords.Values)
+            foreach (var record in AllMtiRecords())
             {
                 if (!force && previous.SameTexture(selection, "mti", record.AssetKey, record.ImageKey, null)
                     && (record.Source == null || CanRetain(new[] { record.Source }, record.SourceIdentity))) record.Attempt = revision;

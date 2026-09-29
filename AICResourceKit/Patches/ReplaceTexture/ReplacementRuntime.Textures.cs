@@ -50,6 +50,27 @@ namespace AICResourceKit.Patches.ReplaceTexture
             return stable;
         }
 
+        // 从游戏仍持有的原纹理恢复像素，保持已返回给调用方的 Texture/Sprite 引用。
+        private static void RestoreTextureContents(Texture source, Texture2D destination)
+        {
+            var previous = RenderTexture.active;
+            var temporary = RenderTexture.GetTemporary(source.width, source.height, 0,
+                RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            try
+            {
+                Graphics.Blit(source, temporary);
+                RenderTexture.active = temporary;
+                destination.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0, false);
+                destination.Apply(false, false);
+                CopyTextureProperties(source, destination);
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(temporary);
+            }
+        }
+
         private static void CopyTextureProperties(Texture source, Texture destination)
         {
             destination.name = source.name;

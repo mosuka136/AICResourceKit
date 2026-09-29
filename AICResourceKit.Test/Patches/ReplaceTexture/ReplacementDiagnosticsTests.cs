@@ -64,6 +64,7 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
         [InlineData("C:/Game/StreamingAssets/title.dat", null)]
         [InlineData("Assets/Editor/AssetBundlesSrc/MTI_title", null)]
         [InlineData(null, null)]
+        [InlineData("Assets/Editor/AssetBundlesSrc/", null)]
         public void MtiKey_ReadsExactConstructorScopeWithoutFilenameGuessing(string source, string expected)
         {
             Assert.Equal(expected, ReplacementDiagnosticRuntime.MtiKey(source));
@@ -189,7 +190,7 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
                     }
                 }
             }
-            Assert.Equal(4, ReplacementDiagnosticHooks.ExistingEntries().Count());
+            Assert.Equal(8, ReplacementDiagnosticHooks.ExistingEntries().Count());
             Assert.All(ReplacementDiagnosticHooks.ExistingEntries(), Assert.NotNull);
         }
 

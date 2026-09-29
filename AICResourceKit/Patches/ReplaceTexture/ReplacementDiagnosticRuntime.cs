@@ -119,7 +119,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal static void Mti(string assetKey, string imageKey, string stage, string outcome, string reason = null)
         {
             if (Enabled) Record(ReplacementDiagnosticTarget.Mti(assetKey, imageKey), stage,
-                "MTI.LoadContainerOneImage / ReplacementRuntime", outcome, reason);
+                "MTI.LoadImage / LoadContainerOneImage / ReplacementRuntime", outcome, reason);
         }
 
         internal static void Resource(string path, string objectType, string stage, string outcome, string reason = null)
@@ -130,12 +130,6 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static string MtiKey(MTI container) => container == null ? null : MtiKey(container.resources_path);
 
-        internal static string MtiKey(string resourcesPath)
-        {
-            const string prefix = "Assets/Editor/AssetBundlesSrc/";
-            if (resourcesPath == null || !resourcesPath.StartsWith(prefix, StringComparison.Ordinal)
-                || !resourcesPath.EndsWith("/", StringComparison.Ordinal)) return null;
-            return resourcesPath.Substring(prefix.Length, resourcesPath.Length - prefix.Length - 1);
-        }
+        internal static string MtiKey(string resourcesPath) => MtiResourceAddress.ContainerKey(resourcesPath);
     }
 }

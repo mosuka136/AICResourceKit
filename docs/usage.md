@@ -24,6 +24,8 @@
 
 配置文件为 `BepInEx/plugins/AICResourceKit/AICResourceKit.cfg`。总开关在启动阶段决定是否初始化插件；如果启动时关闭了它，修改后需要重启游戏。已有 BetterExperience 资源功能的安装请先阅读[迁移说明](migration.md)，避免同时加载两套旧资源钩子。
 
+更新插件时先退出游戏，再将本次构建的 DLL 部署到安装位置。Debug 与 Release 使用独立输出目录；构建 Debug 不会更新 `bin/Release/`。如果安装位置使用符号链接，应检查其实际指向，确保游戏加载的是包含所需功能的新 DLL。替换 DLL 后需要重启游戏；`Ctrl+T` 只刷新资源文件，不能加载新插件代码。
+
 ### 1.2 常用配置与文件位置
 
 | 配置项 | 默认值 | 用途 |
@@ -137,6 +139,73 @@ BepInEx/plugins/AICResourceKit/ReplaceTexture/
 列表越靠后的包优先。同一个包内不允许重复目标；不同包可以作用于同一目标。普通图片使用最后匹配的候选，Spine 使用既有分层合成规则。
 
 资源未显示时，可以开启[资源加载诊断](diagnostics.md)，按目标键筛选，检查发现、加载和应用结果。Schema 通过或目标被发现都不等于画面已验证。
+
+### 2.5 替换标题中的直接 MTI 图片
+
+`MTI.LoadImage` 使用容器和真实图片键定位，清单仍为 v2。ver030g 源码已确认标题使用 `assetKey: "MTI_title"`，图片键为 `key_noel` 和 `difficulty`。
+
+例如在 `ReplaceTexture/TitleImages/` 下放入清单和两张与原纹理尺寸相同的完整 PNG：
+
+```json
+{
+    "formatVersion": 2,
+    "id": "my-title-images",
+    "targets": [
+        {
+            "type": "texture",
+            "loader": "mti",
+            "assetKey": "MTI_title",
+            "imageKey": "key_noel",
+            "image": "key-noel.png"
+        },
+        {
+            "type": "texture",
+            "loader": "mti",
+            "assetKey": "MTI_title",
+            "imageKey": "difficulty",
+            "image": "difficulty.png"
+        }
+    ]
+}
+```
+
+容器与图片键区分大小写；`assetKey` 保留游戏传入的大小写，不能根据磁盘上的 `mti_title.dat` 改写。只更换其中一张图时，移除不需要的目标即可。同名图片位于其他容器时不会命中这两个目标。
+
+启用资源包后查看标题及难度选择界面。修改 PNG 后按 `Ctrl+T`，资源准备完成后更新已登记的 `MImage` 和它的缓存材质；后续刷新沿用替换纹理引用，关闭资源包恢复原纹理。直接入口首次返回前同步准备图片，大图首载可能有短暂等待。
+
+需要排查时，将诊断筛选设为 `MTI_title`，查看 `entry-hit`、`candidate-applied` 和 `candidate-failed`。当前确认的消费者是标题的 `MImage` 材质缓存；自行复制纹理或材质的其他消费者仍需逐个核对。
+
+`MTIOneImage` 继续由已有单图入口处理，保留第 2.3 节的空键规则，避免它内部的 `LoadImage` 再次应用同一个目标。PXL 额外页仍属于后续能力。
+
+`wplmode_` 虽存在于 `mti_title_wpl.dat`，其实际加载参数仍待确认，因此目前不提供该图片的可安装定位示例。ver030g 的两张标题图已验证首次加载与画面；修改资源后仍应检查刷新和关闭后的显示，自动测试不代替实机检查。
+
+### 2.6 替换 Resources Sprite
+
+下面仅是字段模板，`UI/ExampleSprite` 必须改成诊断中确认的实际 `Resources.Load` 路径：
+
+```json
+{
+    "formatVersion": 2,
+    "id": "my-resource-sprite",
+    "targets": [
+        {
+            "type": "texture",
+            "loader": "resources",
+            "path": "UI/ExampleSprite",
+            "objectType": "Sprite",
+            "image": "sprite-texture.png"
+        }
+    ]
+}
+```
+
+`sprite-texture.png` 必须覆盖原 Sprite 引用的**整张纹理**，尺寸与原纹理完全一致。不要将裁片导出图的尺寸当作源纹理尺寸，也不要移动原区域布局。
+
+当前支持未打包 Sprite，包括矩形裁切和紧密网格；保留原逻辑 rect、pivot、border、pixelsPerUnit、顶点和三角形，并检查 UV 一致性。打包、旋转或需要其他 UV 变换的 Sprite 会报错并跳过，不会用矩形图强行替代。Spine atlas 与 Unity Sprite 的打包状态是不同概念。
+
+应在资源首次加载前启用包。已经由插件返回的替换 Sprite/Texture 在刷新时保留引用；关闭后在同一纹理对象中恢复原图内容。若首次加载时未启用包，游戏可能仍持有原始对象，此时需重新加载对应界面或场景才能取得替换对象。
+
+`mgm_bun.pxls.bytes.texture_0` 与 `damage_backvoreenemy` 的 Sprite 消费入口尚未确认，不能直接把对象名填入 `path`。前者已确认的是同包 Texture2D 的 PXL 路径，不能据此判断 Sprite 也经过 Resources。详细证据与限制见[诊断说明](diagnostics.md)。
 
 ## 3. 校验清单
 
@@ -374,5 +443,7 @@ PXL 的 `imageId`、`imageId2` 都以字符串传入；`imageId2` 应保留原�
 | 公共解析通过，但游戏加载失败 | 检查依赖存在性、PNG/atlas/骨架内容、Sensitive 边界以及目标加载入口 |
 | 提示 atlas 必须只有一页 | v2 当前只支持单页；仅增加 `pages` 字段不会启用多页替换 |
 | 文件存在但提示路径越界或授权树错误 | 按清单位置解析相对路径；共享文件必须在资源根目录内，且不能跨普通/Sensitive 边界 |
+| Sprite 提示 packed、transformed layout 或尺寸不匹配 | 使用原整张纹理；当前不支持打包/旋转 Sprite，不能改用裁片尺寸绕过检查 |
+| 已显示的 Resources 图片在首次启用包后未变化 | 在首次加载前启用，或重新加载对应界面；旧原始引用不会自动变成替换对象 |
 | 工具能生成新地址，但游戏没有变化 | 地址草案不连接运行时替换；等待对应适配器实现后再制作可安装包 |
 | 修改包后仍看到旧内容 | 按 `Ctrl+T` 刷新，检查包开关、排序和诊断中的失败记录；坏候选可能保留仍获授权的旧资源 |

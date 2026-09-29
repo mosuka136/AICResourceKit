@@ -25,8 +25,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private static bool stopped;
         private static bool initialized;
         internal static bool HasWork => spineStates.Values.Any(state => state.Shown != null)
-            || mtiRecords.Values.Any(record => record.Replacement != null)
-            || resourceRecords.Values.Any(record => record.Replacement != null);
+            || AllMtiRecords().Any(record => record.Replacement != null)
+            || resourceRecords.Values.Any(record => record.Source != null);
 
         internal static void Initialize()
         {
@@ -207,8 +207,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void RestoreOrdinary()
         {
-            foreach (var record in mtiRecords.Values) Restore(record);
-            foreach (var record in resourceRecords.Values) DisposeResource(record);
+            foreach (var record in AllMtiRecords()) Restore(record);
+            foreach (var record in resourceRecords.Values) RestoreResource(record);
         }
 
         private static bool CanRetain(IEnumerable<ReplacementPackage> packages, string identity)

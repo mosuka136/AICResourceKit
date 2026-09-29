@@ -38,13 +38,49 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 record = new ResourceRecord { Path = path, ObjectType = objectType, Original = original };
                 resourceRecords.Add(key, record);
             }
+            // Load(string) 会调用 Load(string, Type)，外层收到的可能已是内层返回的替换对象。
+            if (ReferenceEquals(record.Replacement, original)) return original;
+            if (record.Original != original)
+            {
+                DisposeResource(record);
+                record.Original = original;
+                record.Attempt = -1;
+            }
             ApplyResource(record, firstAccess: true);
             return record.Replacement ?? original;
         }
 
         private static void RefreshResourceRecords()
         {
-            foreach (var record in resourceRecords.Values.ToArray()) ApplyResource(record);
+            foreach (var pair in resourceRecords.ToArray())
+            {
+                if (pair.Value.Original == null)
+                {
+                    DisposeResource(pair.Value);
+                    resourceRecords.Remove(pair.Key);
+                }
+                else ApplyResource(pair.Value);
+            }
+        }
+
+        internal static Object ReleaseResource(Object resource)
+        {
+            if (resource == null) return resource;
+            // 调用方通常持有 Load 返回的替换对象；将卸载请求交回相应的原始资源。
+            var owned = resourceRecords.Values.FirstOrDefault(record =>
+                ReferenceEquals(record.Replacement, resource) || ReferenceEquals(record.Texture, resource));
+            if (owned != null)
+                resource = owned.Original != null && resource is Texture && owned.Original is Sprite originalSprite
+                    ? originalSprite.texture : owned.Original;
+            foreach (var pair in resourceRecords.ToArray())
+            {
+                var record = pair.Value;
+                bool ownsTexture = record.Original != null && record.Original is Sprite sprite && sprite.texture == resource;
+                if (record.Original != resource && !ownsTexture) continue;
+                resourceRecords.Remove(pair.Key);
+                DisposeResource(record);
+            }
+            return resource;
         }
 
         private static void ApplyResource(ResourceRecord record, bool firstAccess = false)
@@ -61,7 +97,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 BLog.Warn("Resources replacement target is damaged: " + record.Path + " (" + record.ObjectType + ").");
                 ReplacementDiagnosticRuntime.Resource(record.Path, record.ObjectType, "candidate-failed", "invalid-layer", "Invalid or unidentified manifest target; see catalog errors.");
                 if (record.Replacement == null || !CanRetain(new[] { record.Source }, record.SourceIdentity))
-                    DisposeResource(record);
+                    RestoreResource(record);
                 record.Attempt = revision;
                 return;
             }
@@ -69,18 +105,18 @@ namespace AICResourceKit.Patches.ReplaceTexture
             {
                 record.Pending?.Dispose();
                 record.Pending = null;
-                if (record.Replacement != null && CanRetain(new[] { record.Source }, record.SourceIdentity))
+                if (record.Source != null && CanRetain(new[] { record.Source }, record.SourceIdentity))
                 {
                     record.Attempt = revision;
                     return;
                 }
-                DisposeResource(record);
+                RestoreResource(record);
                 record.Attempt = revision;
                 return;
             }
             try
             {
-                if (record.Replacement != null && !CanRetain(new[] { record.Source }, record.SourceIdentity)) DisposeResource(record);
+                if (record.Source != null && !CanRetain(new[] { record.Source }, record.SourceIdentity)) RestoreResource(record);
                 byte[] bytes;
                 if (firstAccess && record.Replacement == null)
                 {
@@ -105,10 +141,19 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     if (error != null) throw error;
                 }
                 ValidateCurrent(layer);
-                Texture source = record.Original is Sprite sprite ? sprite.texture : (Texture)record.Original;
+                var originalSprite = record.Original as Sprite;
+                var spriteLayout = originalSprite != null && record.Replacement == null
+                    ? ReplacementSpriteLayout.Read(originalSprite) : null;
+                Texture source = originalSprite != null ? originalSprite.texture : (Texture)record.Original;
                 record.Texture = LoadStableTexture(bytes, source, record.Texture);
                 if (record.ObjectType == "Texture2D") record.Replacement = record.Texture;
-                else if (!(record.Replacement is Sprite)) record.Replacement = CreateSprite((Sprite)record.Original, record.Texture);
+                else if (spriteLayout != null)
+                {
+                    var sprite = spriteLayout.Create(record.Texture);
+                    sprite.name = originalSprite.name;
+                    sprite.hideFlags = originalSprite.hideFlags;
+                    record.Replacement = sprite;
+                }
                 record.Source = layer.Owner;
                 record.SourceIdentity = layer.Identity;
                 record.Attempt = revision;
@@ -120,20 +165,34 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 record.Pending = null;
                 BLog.Error("Resources replacement rejected: " + record.Path + " (" + record.ObjectType + ")", ex);
                 ReplacementDiagnosticRuntime.Resource(record.Path, record.ObjectType, "candidate-failed", ex.GetType().Name, ex.Message);
-                if (record.Replacement == null || !CanRetain(new[] { record.Source }, record.SourceIdentity)) DisposeResource(record);
+                if (record.Source == null || !CanRetain(new[] { record.Source }, record.SourceIdentity)) RestoreResource(record);
                 record.Attempt = revision;
             }
         }
 
-        private static Sprite CreateSprite(Sprite original, Texture2D texture)
+        private static void RestoreResource(ResourceRecord record)
         {
-            Rect rect = original.rect;
-            Vector2 pivot = new Vector2(original.pivot.x / rect.width, original.pivot.y / rect.height);
-            var sprite = Sprite.Create(texture, rect, pivot, original.pixelsPerUnit, 0,
-                SpriteMeshType.FullRect, original.border);
-            sprite.name = original.name;
-            sprite.hideFlags = original.hideFlags;
-            return sprite;
+            record.Pending?.Dispose();
+            record.Pending = null;
+            if (record.Replacement == null || record.Original == null)
+            {
+                DisposeResource(record);
+                return;
+            }
+            if (record.Source == null) return;
+            try
+            {
+                Texture source = record.Original is Sprite sprite ? sprite.texture : (Texture)record.Original;
+                RestoreTextureContents(source, record.Texture);
+                record.Source = null;
+                record.SourceIdentity = null;
+                ReplacementDiagnosticRuntime.Resource(record.Path, record.ObjectType, "restored", "stable-object-original-content");
+            }
+            catch (Exception ex)
+            {
+                BLog.Error("Could not restore the original Resources texture: " + record.Path, ex);
+                DisposeResource(record);
+            }
         }
 
         private static void DisposeResource(ResourceRecord record)

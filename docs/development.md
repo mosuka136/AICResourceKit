@@ -32,6 +32,8 @@ python tools/validate-contract-schema.py
 
 日常开发使用 Debug。构建不会自动部署，产物为 `AICResourceKit/bin/Debug/AICResourceKit.dll`。不要对可能被游戏符号链接引用的 Release 产物做日常试验；游戏部署属于单独的验证步骤。
 
+进行游戏验证前，退出游戏并检查安装目录内 `AICResourceKit.dll` 是普通文件还是符号链接。普通文件需要复制本次构建产物；符号链接需要确认其目标与本次构建配置一致。若部署明确使用 Release，则在部署步骤构建 `dotnet build AICResourceKit/AICResourceKit.csproj -c Release -m:1 -nr:false`。重新启动后再采集诊断，不能用旧进程或旧报告判断新代码是否生效。
+
 ## 模块职责
 
 | 模块 | 职责 |
@@ -43,6 +45,8 @@ python tools/validate-contract-schema.py
 | `ReplacementRuntime` | 主线程调度、目录接受和选择变更；具体资源处理见下表 |
 | `SpineComposer` | 分层组合骨架、皮肤、动画及兼容映射 |
 | `ReplacementResourcePaths` / `IO` / `Keys` | 路径边界、明文与密文读取及格式兼容 |
+| `MtiResourceAddress` / `ReplacementMtiImagePatch` | 直接 MTI 图片的容器键、加载与释放入口；单图容器仍走已有入口 |
+| `ReplacementSpriteLayout` / `ReplacementResourceReleasePatch` | Sprite 几何兼容检查与创建、Resources 卸载转交 |
 | `ReplacementDiagnostic*` | 可关闭的观察器与报告，不改变目标匹配 |
 | `PortraitControl*` / `PortraitReplacementPreview` | 主界面立绘控制、预览及会话状态 |
 | `AICResourceKit.ResourceEncryptor/` | 命令行参数、严格包解析、依赖检查与加密导出 |
@@ -55,9 +59,9 @@ python tools/validate-contract-schema.py
 | [ReplacementRuntime.Spine.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Spine.cs) | 主立绘准备、安装、释放及状态 |
 | [ReplacementRuntime.SpineAssets.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineAssets.cs) | 创建 Spine Unity 资源及对象所有权 |
 | [ReplacementRuntime.Viewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Viewers.cs) | 消费者重绑、动画与皮肤延续、显示参数 |
-| [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | MTIOneImage 纹理及对应消费者 |
+| [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | 单图容器、直接图片的缓存记录、应用及释放 |
 | [ReplacementRuntime.Resources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Resources.cs) | Resources.Load 首载与刷新 |
-| [ReplacementRuntime.Textures.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Textures.cs) | 共用的纹理准备、上传节流和原位更新 |
+| [ReplacementRuntime.Textures.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Textures.cs) | 共用的纹理准备、上传节流、原位更新及原图恢复 |
 | [ReplacementPreviewResources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementPreviewResources.cs) | 临时立绘预览资源与会话衔接 |
 
 新逻辑放入对应职责文件，避免继续扩大调度入口。只有出现明确复用需求时再抽象公共类或接口。
@@ -65,7 +69,9 @@ python tools/validate-contract-schema.py
 ## 关键行为
 
 - 所有 Unity 对象创建、绑定、销毁和运行时状态修改在主线程执行；后台任务只准备数据。
-- `Resources.Load` 首次返回的对象可能被游戏长期持有，需要同步首载；后续刷新尽量原位更新纹理。
+- 直接 `MTI.LoadImage` 首载同步应用；后续更新 `MImage.Tx` 时游戏会同步缓存材质。MTIOneImage 内部的同名调用由原单图入口管理，避免重复应用。
+- `Resources.Load` 首次返回的对象可能被游戏长期持有，需要同步首载；两个重载嵌套时识别已经返回的替换对象。后续刷新和关闭后恢复原图保持引用；`Resources.UnloadAsset` 将替换对象的卸载转交原资源并清理自建对象。
+- Sprite 使用原整张纹理与原网格。打包、旋转或 UV 不能按原 rect/pivot/PPU 重建时明确拒绝，不能退化为看似成功的 FullRect 图片。
 - 清单先识别目标身份，再检查内容。身份重复使整个包无效；单个目标的字段或依赖出错可隔离，并保留其他有效目标。
 - 保留 v2 身份、包优先级、MTI null/空字符串语义和 Sensitive 开关行为。修改字段规则时同步更新 Schema、向量与契约说明。
 - 关闭替换后恢复原对象、释放自建 Unity 对象属于正常生命周期。不要扩展成磁盘备份、快照或复杂回滚系统。

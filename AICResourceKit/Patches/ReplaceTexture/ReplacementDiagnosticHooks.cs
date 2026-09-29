@@ -107,6 +107,9 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static IEnumerable<MethodBase> ExistingEntries()
         {
+            yield return typeof(MTI).GetMethod("LoadImage", new[] { typeof(string) });
+            foreach (var method in ReplacementMtiReleasePatch.TargetMethods()) yield return method;
+            yield return typeof(Resources).GetMethod("UnloadAsset", new[] { typeof(UnityEngine.Object) });
             yield return typeof(MTI).GetMethod("LoadContainerOneImage", new[] { typeof(string), typeof(string), typeof(string) });
             yield return typeof(Resources).GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Single(method => method.Name == "Load" && !method.IsGenericMethod && method.GetParameters().Length == 1);
@@ -120,7 +123,9 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private static void MtiImage(MTI __instance, string path, MImage __result)
         {
             ReplacementDiagnosticRuntime.Guard(() => ReplacementDiagnosticRuntime.Record(
-                new ReplacementDiagnosticTarget("mti-image", ReplacementDiagnosticRuntime.MtiKey(__instance), path, "Texture"),
+                MtiResourceAddress.UsesDirectImageEntry(__instance)
+                    ? ReplacementDiagnosticTarget.Mti(ReplacementDiagnosticRuntime.MtiKey(__instance), path)
+                    : new ReplacementDiagnosticTarget("mti-image", ReplacementDiagnosticRuntime.MtiKey(__instance), path, "Texture"),
                 "entry-hit", "XX.MTI.LoadImage(string)", __result?.Tx == null ? "image-unavailable" : "image-returned",
                 details: new Dictionary<string, object> { ["containerType"] = __instance.GetType().FullName }));
         }

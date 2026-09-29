@@ -2,7 +2,7 @@
 
 本文是后续能力的设计与实施计划；当前可用功能和操作以[使用说明](../usage.md)与[诊断能力表](../diagnostics.md)为准。
 
-状态：P01 调查、诊断与测试已实现并迁入；实机验证待完成。P02 契约草案、公共语义及测试已实现；P03 及后续步骤待逐项确认。基线：`ver030g`，2026-09-29。
+状态：P01 调查、诊断与测试已实现并迁入；标题入口已实机验证，其余路径继续核对。P02 契约草案、公共语义及测试已实现；P03 直接 MTI 入口与未打包 Sprite 处理已实现，两张标题图首次加载与画面已验证；刷新、关闭、释放及三个待查入口仍未验收；P04 及后续步骤待逐项确认。基线：`ver030g`，2026-09-29。
 
 实施顺序固定为两个阶段：先在 `D:\C\Visual_Studio\AICResourceKit` 实现并验证资源替换能力，交付稳定的加载标识、包格式、能力清单和测试样例；再在 `D:\mine\B\programme\AliceInCradle\spine-wardrobe` 按这些接口扩展制作工具。
 
@@ -135,11 +135,13 @@
 
 ### P03 · 补齐直接 MTI 图片与 Sprite 入口
 
+**当前状态：** 已接入直接 `MTI.LoadImage`、缓存材质更新与 MTI 释放；单图容器避免重复应用。Resources 的未打包 Sprite 保留原网格和 UV，刷新与恢复原图保留替换引用，显式卸载时清理。自动测试通过；ver030g 已部署并用 `sakura-furisode-title-v1` 验证 `key_noel`、`difficulty` 的首次加载与标题、难度选择画面，两项诊断均为 `candidate-applied`。刷新、关闭和释放尚未完成实机验证。`wplmode_` 的实际加载参数，以及 `mgm_bun.pxls.bytes.texture_0`、`damage_backvoreenemy` 两个 Sprite 消费入口仍待确认，不标记为已验证替换。使用方式见[正式说明](../usage.md)。
+
 **依赖：P01、P02。**
 
 修改加载补丁、纹理注册与应用模块，优先复用现有纹理准备机制。
 
-- 接入 `MTI.LoadImage` 的实际路径，覆盖标题 `key_noel`、`difficulty`、`wplmode_`。使用容器与资源键匹配，不能全局拦截同名图片。
+- 接入 `MTI.LoadImage` 的实际路径；`key_noel`、`difficulty` 的调用已确认，`wplmode_` 待真实入口证据后验收。使用容器与资源键匹配，不能全局拦截同名图片。
 - 与已有 `LoadContainerOneImage` 补丁协调，同一对象只应用一次；处理首次返回、缓存持有、刷新和释放。
 - 核对 `mgm_bun.pxls.bytes.texture_0`、`damage_backvoreenemy` 两个 Sprite 的来源。经过 Resources 时复用已有入口；确有其他创建路径再增加对应适配器。
 - 审查现有 `CreateSprite` 的 `SpriteMeshType.FullRect` 实现，补齐适用目标的裁切、旋转、pivot、border、pixelsPerUnit、网格和 UV 语义。不支持的形态必须被检测并说明，不能显示错位后仍报成功。
