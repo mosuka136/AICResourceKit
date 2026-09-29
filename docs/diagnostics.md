@@ -10,17 +10,19 @@
 
 | 路径 | 当前替换能力 | 证据与限制 |
 |---|---|---|
-| 主立绘 `SvTexture` / `SpineViewerNel` | 既有 v2 单页 Spine | 通用 `key + jsonKey`，没有四姿态白名单；37 组均登记，逐组实机未验证 |
+| 主立绘 `SvTexture` / `SpineViewerNel` | 既有 v2 单页 Spine | 通用 `key + jsonKey`，没有四姿态白名单；37 组 JSON 已做原样合成；历史 JSON 的纹理/深度路径通过，逐场景画面未验收 |
 | `MTI.LoadContainerOneImage` | 既有 v2 主纹理 | PXL 省略 `image_key`，目标保持空值；`load_key` 是持有者标记 |
 | `MTI.LoadImage` | v2 直接图片替换 | 按容器和图片键匹配，更新 MImage 及缓存材质；ver030g 已验证 key_noel、difficulty 的首次加载与画面；刷新、关闭和释放仍待实机核对 |
 | `Resources.Load` | v2 Texture2D / 未打包 Sprite | Sprite 保留原网格与 UV；打包/旋转布局拒绝。两个目录 Sprite 的实际消费入口仍未确认 |
 | PXL 内嵌、打包页和额外页 | v2 `loader: pxl` 图片与整页替换 | MTI 来源、原始 ID/I/P、外部槽位或打包页序号定位；共享纹理原位更新，逐页报告结果 |
-| 普通 `SpineViewer` / Fatal | 本项只观察资源加载 | 不经过主立绘适配器；部分图片经过 MTI 不代表骨架已接入 |
+| 普通 `SpineViewer` / Fatal | v2 `type: spine-assets`，单页/多页 | 真实容器、atlas、JSON 定位；各查看器独立材质，使用[完整页映射](spine-viewer-replacement.md) |
 | PICT / EF_PICT | 本项只观察区域查找 | `SpvLoader.GetImage` 直接取 atlas 区域，能够使用默认骨架以外的图片 |
 | MPCC | 本项只观察解码器 | 已知编辑器读取器及 PXL 页组合机制；五个文件的游戏调用和角色归属待查 |
 | VideoClip | 本项只观察播放器状态 | 教程为 `Tuto_mp4/<clip>` → `FillBlockMovie`；地图效果为 `Effect_mp4/<clip>` → `M2UnstbMovie` |
 
 “只观察”不表示资源包可以使用相应新类型。观察器不更换资源、不触发剧情、不读取服装任务，不改变替换授权和优先级。静态清单不需要复制进游戏，运行时工具不依赖 wardrobe。
+
+普通查看器记录 `details.address`、`pageNames` 和当前 `packageIds`。`viewer-source-bound` 表示实际消费者已登记；`candidate-pending`、`candidate-applied`、`candidate-failed`、`restored` 分别表示准备、应用、失败和恢复，按地址与查看器来源排查。
 
 ## 关键参数与待查项
 
@@ -110,3 +112,5 @@ ver030g 已使用 `sakura-furisode-title-v1` 验证 `MTI_title/key_noel` 和 `MT
 ver030g 的 PXL 运行时验证覆盖 `PxlNoel/noel.pxls` 外部页、`PxlNoel/noel_bassrobe.pxls` 内嵌打包页、`MTI_mgm_ttr` 中的 `_icons_ttr.pxls` 和 `Pxl/_icons.pxls`。混合内嵌/外部页及额外页夹具验证了替换、刷新、停用恢复、延迟重绑、共享释放及单页错误隔离；同时检查原纹理引用、不可读和压缩纹理、mipmap、RenderTexture 与字体初始化。该检查基于实际 Unity 对象和像素，不替代全部动作、剧情及场景画面验收。
 
 P01 静态清单保留采集时的状态和计数，不自动同步后续实机验证。其他目标仍需在对应场景采集实际报告并检查画面；静态调查、方法签名与 `candidate-applied` 均不能独立证明画面正确。
+
+ver030g 的普通 Spine 运行时验证覆盖 `fatal_nusi_0/1` 的真实共享图集、同屏独立材质、首载与 JSON 切换，以及双页夹具的网格和页面像素。刷新保留轨道、队列、播放时间、皮肤和事件订阅；停用、共享查看器释放及坏页隔离通过。37 组主立绘 JSON 的骨骼/皮肤/事件数量及动画名称集合在原样合成后保持一致；`stand_battle.old` 独立经过 SvTexture 纹理与深度处理。该结果不等同于全部剧情、污渍和预览画面的逐场景验收；Resources 多页使用合成夹具验证。P01 机器清单保留原调查时的观察状态，后续能力以本节为准。

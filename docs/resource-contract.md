@@ -1,6 +1,6 @@
 # 资源目标与清单契约（P02）
 
-状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。PXL 子集已接入 v2 `loader: pxl`；其他新地址草案仍只描述定位与校验规则。
+状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。PXL 子集已接入 v2 `loader: pxl`，普通 Spine 已接入 `type: spine-assets`；其他新地址草案仍只描述定位与校验规则。
 
 资源包创建、校验命令及可运行的 C# API 示例见[资源契约使用说明](usage.md)。
 
@@ -20,6 +20,7 @@
 - `ResourceManifest.ReadHeader`、`IdentityOf`、`ReadTarget`：运行时分步解析，便于保留可识别的失败目标并隔离其他目标。
 - `ResourceIdentity`：生成既有 v2 身份，提供 MTI 匹配谓词。
 - `PxlResourceAddress.Parse`、`Describe`、`Embedded`、`Page`：PXL 可安装地址的解析、输出与构造。
+- `SpineResourceAddress.Parse`、`Create`、`Describe`：普通查看器的加载范围、atlas 和 JSON 地址。
 - `ResourceAddressDraft.IdentityOf`、`ValidatePages`：保留独立地址与完整页映射草案 API，不直接触发替换。
 
 解析 API 接受已解码的 `Dictionary<string, object>`，数组为 `List<object>`，数字为 `float`、`double`、`int` 或 `long`。JSON 解码由宿主负责：插件沿用 Spine 解码器，加密工具使用 System.Text.Json。制作工具应保留字符串键的大小写，不将 PXL 的第二图片 ID 经单精度浮点数转换。
@@ -70,13 +71,21 @@ v2 新增 `type=texture`、`loader=pxl`、`address` 和 `image`。`address` 接�
 
 每个目标声明一个 PNG 依赖，可以在同一包内列出多页；不增加 Spine 多页 atlas 支持。完整字段示例与诊断复制方法见 [PXL 说明](pxl-replacement.md)。
 
+## 普通 Spine 地址与多页扩展
+
+v2 新增 `type=spine-assets`，用 `address={kind:spine-assets,loader,assetKey?,atlasKey,jsonKey}` 定位普通查看器。MTI 的 atlasKey 保留实际 `.atlas` 后缀；Resources 使用完整资源路径且不得提供 assetKey。身份为 `spine-assets\n` 加 draft1 地址去掉前缀后的长度编码，与主立绘身份分离。不能同时填写主立绘的顶层 key/jsonKey。
+
+可使用单页 `image` 或完整 `pages`，二者互斥；每个映射包含 `pageKey` 和 `image`，精确匹配最终 atlas 页名。最后一个声明图片的目标层提供整套映射，缺页不从其他层补齐。所有页面 PNG 都是显式依赖；不提供候选图片时按原页名复用原纹理。只有骨架目标 `spine-assets` 支持该映射，主立绘 `spine` 仍使用单页。
+
+共享 JSON 分段与兼容映射规则，显示参数仅支持 `skeletonScale`；不接受 `effects` 和其他主立绘显示字段。完整示例和生命周期见[普通 SpineViewer 说明](spine-viewer-replacement.md)。
+
 ## v2 字段、依赖与优先级
 
 顶层为 `formatVersion=2`、非空 `id` 和非空 `targets`。Texture 目标必须提供 `image`。Spine 可提供 `image`、`atlas`、`spine.json + spine.replace`、兼容映射、显示参数和污渍策略，详细字段见 [现有资源包说明](resource-packs.md)。
 
 `spine.replace` 允许 `bones`、`slots`、`constraints`、`skins`、`attachments`、`events`、`animations`、`all`。`all` 不能与其他段混用，`skins` 与 `attachments` 不能在同一目标层同时出现。空 Spine 目标以及只有 fallback、没有实际替换内容的目标被拒绝。
 
-依赖枚举只返回清单明确声明的 `image`、`atlas`、`spine.json`。v2 atlas 是单页：不从 atlas 页名猜测另一个候选 PNG；若未指定 `image`，由现有层叠逻辑或原始图片提供纹理。缺少已声明文件会使目标失败，多页 atlas 会被拒绝，不能把缺页当成透明页或套用第一张图片。
+依赖枚举返回清单明确声明的 `image`、`pages[].image`、`atlas`、`spine.json`。不从 atlas 页名猜测候选 PNG。主立绘仍拒绝多页；普通查看器使用完整页映射。缺少已声明文件会使目标失败，不能把缺页当成透明页或套用第一张图片。
 
 文件路径相对于当前清单。可以用 `../shared/page.png` 在同一资源根目录、同一授权树内共享文件；跨包共享本身不构成错误。解析后必须位于 `ReplaceTexture` 根下，不允许绝对路径、目录越界或 reparse point。普通目录与 `Sensitive` 不能跨界共享依赖。加密导出按规范化后的物理路径去重，保留相对目录布局。
 
@@ -95,7 +104,7 @@ v2 新增 `type=texture`、`loader=pxl`、`address` 和 `image`。`address` 接�
 
 登记有效目标不等于已经显示。PXL 对失败纹理恢复原像素，并按图片/页报告失败；其他独立纹理继续处理。刷新后有损坏候选时，现有运行时只在来源仍有授权、文件与路径约束仍成立的情况下尝试保留旧资源；撤销开关或 Sensitive 授权则恢复/释放。该行为仍由现有生命周期实现负责，P02 不扩大其保证。
 
-未知附加字段沿用旧版忽略行为，因此不能靠给 v2 增加 `pages` 等字段声明新语义。当前公共解析及插件明确拒绝 `formatVersion=3`。后续若多页或新的加载范围确实无法兼容 v2，应在接入阶段设计并显式支持新版本，不批量改写已有包。
+旧目标的未知附加字段沿用旧版忽略行为；给主立绘 `spine` 添加 `pages` 不会启用多页。新增普通查看器类型明确解析 `pages`，拒绝不适用的显示和效果字段。当前公共解析及插件明确拒绝 `formatVersion=3`。后续若多页或新的加载范围确实无法兼容 v2，应在接入阶段设计并显式支持新版本，不批量改写已有包。
 
 ## 新地址草案 draft1
 
@@ -103,7 +112,7 @@ v2 新增 `type=texture`、`loader=pxl`、`address` 和 `image`。`address` 接�
 
 | kind | 身份组成 | 接入与证据边界 |
 | --- | --- | --- |
-| `spine-assets` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `jsonKey` | 来自 prepareAtlasAssetsS 的真实参数；Resources 不允许混入 assetKey；P05 接入 |
+| `spine-assets` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `jsonKey` | 来自 prepareAtlasAssetsS 的真实参数；Resources 不允许混入 assetKey；已通过 v2 `type: spine-assets` 接入 |
 | `atlas-region` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `region` | 区域属于共享 atlas，不添加无关骨架 JSON；P06 接入 |
 | `pxl-image` | `source={loader:mti,assetKey,textKey}` + `imageId` + `imageId2` + `role=I/P` | 来源需在读取 PXL 文本资产处绑定到角色对象，不能用 external_png_header 的默认值猜测；已通过 `loader: pxl` 接入 |
 | `pxl-page` | 同一 PXL source + `storage=external,pageIndex`，或 `storage=packed,pageOrdinal,imageType` | 外部数组槽位与打包页序号不是同一标识；已通过 `loader: pxl` 接入 |
@@ -115,9 +124,9 @@ PXL 的 `imageId` 是 UInt32 十进制字符串；`imageId2` 是原始 double �
 
 草案身份使用 `draft1|` 加各组成字段的 UTF-8 字节数、冒号和原值串联。字段次序以表及公共实现为准，避免将路径分隔符作为字段分隔符而产生碰撞。旧 v2 身份保持原格式。
 
-## 多页草案
+## 完整页映射规则
 
-页映射为 `pageKey → image`。调用者必须先取得完整的原始页键集合：Spine 使用真实 atlas 页名；PXL 使用已验证的页地址，不能使用导出文件名。`ValidatePages` 校验映射与原始集合严格一一对应：
+页映射为 `pageKey → image`。调用者必须先取得完整的目标页键集合；普通 Spine 使用叠加后的最终 atlas：Spine 使用真实 atlas 页名；PXL 使用已验证的页地址，不能使用导出文件名。`ValidatePages` 校验映射与原始集合严格一一对应：
 
 - 缺页、未知页、重复页、空原始目录都拒绝；区分大小写，不按列表顺序猜测。
 - 不同页可以明确指向同一个候选图片；不代表可以省略其中一页。

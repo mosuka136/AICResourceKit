@@ -25,7 +25,7 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 | 准备引用、构建、修改代码和维护文档 | [开发说明](docs/development.md) |
 | 查看全部文档与适用范围 | [文档目录](docs/README.md) |
 
-当前可安装格式为 `formatVersion: 2`，Spine 使用单页 atlas、straight-alpha PNG 和 Spine 4.1 JSON。PXL 的 `loader: pxl` 已接入图片和逐页替换；普通剧情 Spine、多页 Spine atlas 与视频仍按计划实现；各项能力见[诊断说明](docs/diagnostics.md)，后续设计见[资源工具计划](docs/planning/noel-resource-tools.md)。
+当前可安装格式为 `formatVersion: 2`，Spine 使用 straight-alpha PNG 和 Spine 4.1 JSON。主立绘 `type: spine` 使用单页 atlas；[普通剧情 Spine](docs/spine-viewer-replacement.md) 使用 `type: spine-assets`，支持显式多页映射。PXL 的 `loader: pxl` 支持图片和逐页替换。各项能力见[诊断说明](docs/diagnostics.md)，后续设计见[资源工具计划](docs/planning/noel-resource-tools.md)。
 
 ## 构建与测试
 

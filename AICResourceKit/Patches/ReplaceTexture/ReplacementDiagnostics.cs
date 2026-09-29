@@ -49,8 +49,12 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal static ReplacementDiagnosticTarget Pxl(PxlResourceAddress address) =>
             new ReplacementDiagnosticTarget("pxl", address.AssetKey, address.TextKey, "Texture", address.Identity);
 
+        internal static ReplacementDiagnosticTarget SpineAssets(SpineResourceAddress address) =>
+            new ReplacementDiagnosticTarget("spine-assets", address.AssetKey, address.JsonKey, "SkeletonDataAsset", address.Identity);
+
         internal static ReplacementDiagnosticTarget FromManifest(ReplacementTarget target) =>
-            target.Type == "spine" ? Spine(target.SpineKey, target.JsonKey)
+            target.Type == "spine-assets" ? SpineAssets(target.SpineAddress)
+                : target.Type == "spine" ? Spine(target.SpineKey, target.JsonKey)
                 : target.Loader == "pxl" ? Pxl(target.PxlAddress)
                 : target.Loader == "mti" ? Mti(target.AssetKey, target.ImageKey)
                 : Resources(target.ResourcePath, target.ObjectType);

@@ -2,7 +2,7 @@
 
 本文介绍插件安装与日常操作、v2 资源包制作、清单校验、公共 API 和地址草案。玩家可先阅读第 1 节和第 2.4 节；资源包作者与工具开发者按下表选择后续内容。
 
-当前可安装的清单版本为 `formatVersion: 2`；PXL 图片与页目标使用 `loader: pxl`，详见[PXL 使用说明](pxl-replacement.md)。独立地址草案文件和多页 Spine 映射尚不能作为资源包安装。
+当前可安装的清单版本为 `formatVersion: 2`；PXL 图片与页目标使用 `loader: pxl`，详见[PXL 使用说明](pxl-replacement.md)。普通剧情 Spine 与多页 atlas 使用 `type: spine-assets`，详见[普通 SpineViewer 使用说明](spine-viewer-replacement.md)。独立地址草案文件不能直接作为资源包安装。
 
 ## 1. 安装与日常操作
 
@@ -11,7 +11,8 @@
 | 制作或修改资源包 | 按第 2 节创建清单，按第 3 节校验，然后在游戏中启用 |
 | 检查项目的契约测试是否正常 | 运行第 3.1 节的现有检查命令 |
 | 为自己的工具解析目标、检查重复或收集依赖 | 链接 `Contracts` 源码，使用第 4 节的 C# 示例 |
-| 研究未来的剧情 Spine、视频或多页 Spine 目标 | 使用第 5 节的地址草案 API；不会触发资源替换 |
+| 制作剧情 Spine 或多页 atlas 包 | 使用[普通 SpineViewer 替换](spine-viewer-replacement.md)中的清单与页映射 |
+| 研究未来的视频或 atlas 区域目标 | 使用第 5 节的地址草案 API；不会触发资源替换 |
 | 查看字段和错误处理的完整定义 | 阅读[资源目标与清单契约](resource-contract.md) |
 
 除明确标为游戏目录的路径外，下面的命令均从 AICResourceKit 仓库根目录执行。C# 示例与加密工具需要 .NET 8 SDK；Schema 检查需要 Python 和 `jsonschema`。游戏插件运行不需要 Python。
@@ -380,7 +381,7 @@ Target: spine / stand_battle / stand_battle
 
 `ResourceManifest.Parse` 使用严格模式：一个目标无效或身份重复就抛出异常。插件需要逐目标错误隔离时，使用 `ReadHeader`、`IdentityOf`、`ReadTarget`；不能简单吞掉异常后将整个包标为有效。
 
-`Dependencies` 只枚举清单明确声明的 `image`、`atlas` 和 `spine.json`，不会打开文件。这些相对路径尚未去重、检查存在性或确认授权，也不会自动从 atlas 页名补出图片。自有工具后续必须按契约完成文件检查；单纯调用 `Path.GetFullPath` 不能代替根目录及链接检查。
+`Dependencies` 只枚举清单明确声明的 `image`、`pages[].image`、`atlas` 和 `spine.json`，不会打开文件。这些相对路径尚未去重、检查存在性或确认授权，也不会自动从 atlas 页名补出图片。自有工具后续必须按契约完成文件检查；单纯调用 `Path.GetFullPath` 不能代替根目录及链接检查。
 
 ### 4.3 使用测试向量核对自己的实现
 
@@ -445,10 +446,10 @@ PXL 的 `imageId`、`imageId2` 都以字符串传入；`imageId2` 应保留原�
 | `Unsupported replacement manifest version` | 使用 v2；不要将地址草案的版本号或未来格式写入 `formatVersion` |
 | Schema 通过，但公共解析失败 | Schema 不能覆盖所有语义，例如按身份去重；查看解析异常和对应向量 |
 | 公共解析通过，但游戏加载失败 | 检查依赖存在性、PNG/atlas/骨架内容、Sensitive 边界以及目标加载入口 |
-| 提示 atlas 必须只有一页 | v2 当前只支持单页；仅增加 `pages` 字段不会启用多页替换 |
+| 提示 atlas 必须只有一页 | 主立绘 `type: spine` 只支持单页；普通查看器使用 `type: spine-assets` 和完整 `pages` 映射 |
 | 文件存在但提示路径越界或授权树错误 | 按清单位置解析相对路径；共享文件必须在资源根目录内，且不能跨普通/Sensitive 边界 |
 | Sprite 提示 packed、transformed layout 或尺寸不匹配 | 使用原整张纹理；当前不支持打包/旋转 Sprite，不能改用裁片尺寸绕过检查 |
 | 已显示的 Resources 图片在首次启用包后未变化 | 在首次加载前启用，或重新加载对应界面；旧原始引用不会自动变成替换对象 |
-| 工具能生成新地址，但游戏没有变化 | 独立地址草案不会触发替换；PXL 须放入 v2 `loader: pxl` 目标，其他类型等待对应适配器 |
+| 工具能生成新地址，但游戏没有变化 | 独立地址草案不会触发替换；PXL 使用 v2 `loader: pxl`，普通 Spine 使用 `type: spine-assets`，其他类型等待对应适配器 |
 | PXL 提示 address-not-found 或 page-awaiting-texture | 检查诊断中的真实来源、ID/页号，确认目标图片已由游戏加载 |
 | 修改包后仍看到旧内容 | 按 `Ctrl+T` 刷新，检查包开关、排序和诊断中的失败记录；坏候选可能保留仍获授权的旧资源 |

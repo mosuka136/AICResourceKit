@@ -12,6 +12,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal ReplacementPackage Owner;
         internal string PackageId;
         internal string ImagePath;
+        internal readonly Dictionary<string, string> PagePaths = new Dictionary<string, string>(StringComparer.Ordinal);
         internal string AtlasPath;
         internal string JsonPath;
     }
@@ -187,13 +188,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 string path = Resource(root, sensitive, directory, dependency.Path, packageSensitive, verified);
                 if (dependency.Kind == "image")
                 {
-                    target.ImagePath = path;
+                    if (dependency.PageKey != null) target.PagePaths.Add(dependency.PageKey, path);
+                    else target.ImagePath = path;
                     ValidatePngHeader(path);
                 }
                 else if (dependency.Kind == "atlas")
                 {
                     target.AtlasPath = path;
-                    if (PortraitCatalog.ReadAtlas(ReplacementResourceIO.ReadText(path)).Pages.Count != 1)
+                    if (target.Type != "spine-assets" && PortraitCatalog.ReadAtlas(ReplacementResourceIO.ReadText(path)).Pages.Count != 1)
                         throw new InvalidDataException("Spine replacement atlas must contain exactly one page.");
                 }
                 else

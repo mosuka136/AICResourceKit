@@ -42,8 +42,9 @@ namespace AICResourceKit.Contracts
         public static string IdentityOf(Dictionary<string, object> json)
         {
             string type = Required(json, "type").ToLowerInvariant();
+            if (type == "spine-assets") return SpineResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address"))).Identity;
             if (type == "spine") return ResourceIdentity.Spine(Required(json, "key"), Required(json, "jsonKey"));
-            if (type != "texture") throw new InvalidDataException("Target type must be texture or spine.");
+            if (type != "texture") throw new InvalidDataException("Target type must be texture, spine or spine-assets.");
             string loader = Required(json, "loader").ToLowerInvariant();
             if (loader == "pxl") return PxlResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address"))).Identity;
             if (loader == "mti")
@@ -79,9 +80,19 @@ namespace AICResourceKit.Contracts
                 else throw new InvalidDataException("Texture loader must be mti, resources or pxl.");
                 return target;
             }
-            if (target.Type != "spine") throw new InvalidDataException("Target type must be texture or spine.");
-            target.SpineKey = Required(json, "key");
-            target.JsonKey = Required(json, "jsonKey");
+            if (target.Type != "spine" && target.Type != "spine-assets") throw new InvalidDataException("Target type must be texture, spine or spine-assets.");
+            if (target.Type == "spine-assets")
+            {
+                target.SpineAddress = SpineResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address")));
+                if (ContractValue.Get(json, "key") != null || ContractValue.Get(json, "jsonKey") != null)
+                    throw new InvalidDataException("Use address for spine-assets; portrait keys cannot be mixed in.");
+                ReadPages(json, target);
+            }
+            else
+            {
+                target.SpineKey = Required(json, "key");
+                target.JsonKey = Required(json, "jsonKey");
+            }
             string image = ContractValue.String(json, "image");
             string atlas = ContractValue.String(json, "atlas");
             target.Image = image;
@@ -113,11 +124,34 @@ namespace AICResourceKit.Contracts
                 if (!new[] { "auto", "legacy", "disabled" }.Contains(target.Dirt))
                     throw new InvalidDataException("effects.dirt must be auto, legacy or disabled.");
             }
-            if (target.Image == null && target.Atlas == null && target.Json == null
+            if (target.Type == "spine-assets")
+            {
+                if (target.Image != null && target.Pages.Count > 0)
+                    throw new InvalidDataException("Use image or pages, not both.");
+                if (target.Dirt != null || target.Display.ScaleMultiplier.HasValue || target.Display.OffsetX.HasValue
+                    || target.Display.OffsetY.HasValue || target.Display.Width.HasValue || target.Display.Height.HasValue
+                    || target.Display.RightShift.HasValue)
+                    throw new InvalidDataException("spine-assets supports display.skeletonScale; portrait display/effects do not apply.");
+            }
+            if (target.Image == null && target.Pages.Count == 0 && target.Atlas == null && target.Json == null
                 && target.AnimationMap.Count == 0 && target.SkinMap.Count == 0 && target.BoneMap.Count == 0
                 && !HasDisplay(target.Display) && target.Dirt == null)
                 throw new InvalidDataException("Spine target does not replace anything.");
             return target;
+        }
+
+        private static void ReadPages(Dictionary<string, object> json, ResourceTarget target)
+        {
+            object value = ContractValue.Get(json, "pages");
+            if (value == null) return;
+            foreach (var item in ContractValue.Array(value))
+            {
+                var page = ContractValue.Object(item);
+                if (page.Keys.Any(key => key != "pageKey" && key != "image"))
+                    throw new InvalidDataException("Unknown page mapping field.");
+                target.Pages.Add(new ResourcePageDraft(Required(page, "pageKey"), Required(page, "image")));
+            }
+            ResourceAddressDraft.ValidatePages(target.Pages.Select(page => page.PageKey), target.Pages);
         }
 
         private static void ReadCompatibility(Dictionary<string, object> json, ResourceTarget target)

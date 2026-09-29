@@ -94,6 +94,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static string MapBone(SpineViewer viewer, string name)
         {
+            if (name != null && ordinaryViewers.TryGetValue(viewer, out var ordinary) && ordinary.Current != null
+                && ordinary.Current.Composition.BoneMap.TryGetValue(name, out string ordinaryName)) return ordinaryName;
             if (name == null || !(viewer is SpineViewerNel nelViewer)) return name;
             var texture = nelViewer.getSvTexture();
             if (texture != null && spineStates.TryGetValue(texture, out var state) && state.Shown != null

@@ -245,17 +245,22 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static void ValidateImage(byte[] bytes, Atlas atlas)
         {
+            if (atlas.Pages.Count != 1) throw new InvalidDataException("Expected a single-page atlas.");
+            ValidateImage(bytes, atlas, atlas.Pages[0]);
+        }
+
+        internal static void ValidateImage(byte[] bytes, Atlas atlas, AtlasPage page)
+        {
             byte[] signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
             if (bytes.Length < 33 || !bytes.Take(8).SequenceEqual(signature)
                 || bytes[12] != 73 || bytes[13] != 72 || bytes[14] != 68 || bytes[15] != 82)
                 throw new InvalidDataException("Expected PNG with IHDR.");
             int width = ReadInt(bytes, 16), height = ReadInt(bytes, 20);
-            if (atlas.Pages.Count != 1 || width <= 0 || height <= 0
-                || atlas.Pages[0].width != width || atlas.Pages[0].height != height)
-                throw new InvalidDataException("PNG dimensions do not match the single-page atlas.");
-            if (atlas.Pages[0].pma) throw new InvalidDataException("Export straight-alpha PNG (PMA is unsupported).");
+            if (width <= 0 || height <= 0 || page.width != width || page.height != height)
+                throw new InvalidDataException("PNG dimensions do not match atlas page: " + page.name);
+            if (page.pma) throw new InvalidDataException("Export straight-alpha PNG (PMA is unsupported).");
             var names = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var region in atlas.Regions)
+            foreach (var region in atlas.Regions.Where(region => ReferenceEquals(region.page, page)))
             {
                 if (!names.Add(region.name)) throw new InvalidDataException("Duplicate atlas region: " + region.name);
                 // This game's Atlas reader already swaps width/height for a rotated packed region.

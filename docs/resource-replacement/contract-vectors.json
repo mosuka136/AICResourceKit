@@ -913,6 +913,283 @@
                     }
                 ]
             }
+        },
+        {
+            "name": "spine-viewer-shared-atlas-variants",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "b.png",
+                                "image": "pages/b.png"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_0"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "b.png",
+                                "image": "pages/b.png"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine-assets\n12:spine-assets3:mti24:Fatal/fatal_nusi_0.atlas18:fatal_nusi_0.atlas12:fatal_nusi_1",
+                "spine-assets\n12:spine-assets3:mti24:Fatal/fatal_nusi_0.atlas18:fatal_nusi_0.atlas12:fatal_nusi_0"
+            ],
+            "dependencies": [
+                "image:pages/a.png",
+                "image:pages/b.png",
+                "image:pages/a.png",
+                "image:pages/b.png"
+            ]
+        },
+        {
+            "name": "spine-viewer-resources-pages",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "resources",
+                            "atlasKey": "SpineAnim/sample.atlas",
+                            "jsonKey": "SpineAnim/sample"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "b.png",
+                                "image": "pages/b.png"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine-assets\n12:spine-assets9:resources22:SpineAnim/sample.atlas16:SpineAnim/sample"
+            ],
+            "dependencies": [
+                "image:pages/a.png",
+                "image:pages/b.png"
+            ]
+        },
+        {
+            "name": "spine-viewer-single-image",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "image": "one.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine-assets\n12:spine-assets3:mti24:Fatal/fatal_nusi_0.atlas18:fatal_nusi_0.atlas12:fatal_nusi_1"
+            ],
+            "dependencies": [
+                "image:one.png"
+            ]
+        },
+        {
+            "name": "spine-viewer-duplicate-page",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/b.png"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": true
+        },
+        {
+            "name": "spine-viewer-mixed-image-pages",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "b.png",
+                                "image": "pages/b.png"
+                            }
+                        ],
+                        "image": "one.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "spine-viewer-empty-pages",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "pages": []
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "spine-viewer-portrait-effects-rejected",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "b.png",
+                                "image": "pages/b.png"
+                            }
+                        ],
+                        "effects": {
+                            "dirt": "disabled"
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "spine-viewer-portrait-keys-rejected",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "viewer",
+                "targets": [
+                    {
+                        "type": "spine-assets",
+                        "address": {
+                            "kind": "spine-assets",
+                            "loader": "mti",
+                            "assetKey": "Fatal/fatal_nusi_0.atlas",
+                            "atlasKey": "fatal_nusi_0.atlas",
+                            "jsonKey": "fatal_nusi_1"
+                        },
+                        "pages": [
+                            {
+                                "pageKey": "a.png",
+                                "image": "pages/a.png"
+                            },
+                            {
+                                "pageKey": "b.png",
+                                "image": "pages/b.png"
+                            }
+                        ],
+                        "key": "stand_normal"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
         }
     ]
 }

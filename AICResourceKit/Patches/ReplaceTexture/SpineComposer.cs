@@ -46,7 +46,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (layers == null || layers.Count == 0) throw new InvalidDataException("Spine composition has no layers.");
-            if (atlas == null || atlas.Pages.Count != 1) throw new InvalidDataException("Spine composition requires one atlas page.");
+            if (atlas == null || atlas.Pages.Count == 0) throw new InvalidDataException("Spine composition requires an atlas page.");
             var original = PortraitJson.Parse(originalJson);
             RequireVersion(original);
             var result = CloneObject(original);

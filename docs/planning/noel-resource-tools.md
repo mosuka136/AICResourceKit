@@ -2,7 +2,7 @@
 
 本文是后续能力的设计与实施计划；当前可用功能和操作以[使用说明](../usage.md)与[诊断能力表](../diagnostics.md)为准。
 
-状态：P01 调查、诊断与测试已实现并迁入；标题入口已实机验证，其余路径继续核对。P02 契约草案、公共语义及测试已实现；P03 直接 MTI 入口与未打包 Sprite 处理已实现，两张标题图首次加载与画面已验证；刷新、关闭、释放及三个待查入口仍未验收；P04 已接入 PXL 图片/整页替换，验证结果见下文；P05 及后续步骤待逐项确认。基线：`ver030g`，2026-09-29。
+状态：P01 调查、诊断与测试已实现并迁入；标题入口已实机验证，其余路径继续核对。P02 契约草案、公共语义及测试已实现；P03 直接 MTI 入口与未打包 Sprite 处理已实现，两张标题图首次加载与画面已验证；刷新、关闭、释放及三个待查入口仍未验收；P04 已接入 PXL 图片/整页替换，验证结果见下文；P05 已接入普通 SpineViewer、剧情 JSON 与多页 atlas，验证范围见下文；P06 及后续步骤待逐项确认。基线：`ver030g`，2026-09-29。
 
 实施顺序固定为两个阶段：先在 `D:\C\Visual_Studio\AICResourceKit` 实现并验证资源替换能力，交付稳定的加载标识、包格式、能力清单和测试样例；再在 `D:\mine\B\programme\AliceInCradle\spine-wardrobe` 按这些接口扩展制作工具。
 
@@ -40,7 +40,7 @@
 |---|---:|---|
 | 主立绘 Spine | 37 | 4 个目标已有制作工具；其余 33 个需要扩展制作工具 |
 | PXL | 83 | 80 组暂列为可利用外部主纹理入口，需制作工具；3 组内嵌图片需要新增入口 |
-| 剧情 Spine | 12 | 普通 `XX.SpineViewer` / Fatal 路径未接入现有主立绘替换 |
+| 剧情 Spine | 12 | P05 已增加普通 `XX.SpineViewer` / Fatal 独立适配器 |
 | 标题 Texture2D | 3 | `key_noel`、`difficulty`、`wplmode_` 直接调用 `MTI.LoadImage`，需要入口 |
 | VideoClip | 3 | 需要视频制作及加载替换入口 |
 | 独立 atlas / Sprite | 3 | 1 个 atlas、2 个 Sprite 的实际替换入口待验证 |
@@ -170,7 +170,7 @@
 
 **依赖：P01、P02。**
 
-新增普通 SpineViewer 适配器；按需扩展 `SpineComposer`、纹理准备和 atlas 绑定。
+**当前状态：** 已实现 v2 `type: spine-assets`、真实文本地址、每个查看器的独立材质、多页映射、分段合成、加密依赖与运行时释放。ver030g 已验证 `fatal_nusi_0/1` 共享图集、并发查看器、JSON 切换、首载、双页网格与纹理、刷新、动画队列/皮肤/事件保持、模板参数、停用恢复、释放和坏页隔离。37 组主立绘 JSON 原样合成及 `stand_battle.old` 的 SvTexture/深度路径通过；既有预览与合成测试通过。主立绘仍为单页，未逐场景验收全部动作、污渍和剧情画面。使用方式见[普通 SpineViewer 说明](../spine-viewer-replacement.md)。
 
 - 覆盖 Fatal 使用的普通 `XX.SpineViewer`，按真实容器与 JSON 定位。不能把它伪装成 `SpineViewerNel` 或强行套上 `SvTexture`。
 - 保留一包多个 JSON、历史变体及共享 atlas；同一个 JSON 切换不会污染其他骨架。

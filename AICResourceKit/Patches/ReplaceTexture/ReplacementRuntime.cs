@@ -27,7 +27,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal static bool HasWork => spineStates.Values.Any(state => state.Shown != null)
             || AllMtiRecords().Any(record => record.Replacement != null)
             || resourceRecords.Values.Any(record => record.Source != null)
-            || pxlSurfaces.Values.Any(surface => surface.Applied != null);
+            || pxlSurfaces.Values.Any(surface => surface.Applied != null)
+            || ordinaryViewers.Values.Any(state => state.Current != null);
 
         internal static void Initialize()
         {
@@ -82,6 +83,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             RefreshResourceRecords();
             PumpPxlSurfaces();
             PumpSpines();
+            PumpOrdinaryViewers();
             Collect();
         }
 
@@ -101,6 +103,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             foreach (var package in catalog.Packages)
                 foreach (var target in package.Targets) ReplacementDiagnosticRuntime.Discover(target);
             DiscoverPxlBindings();
+            DiscoverOrdinaryViewers();
             foreach (string error in catalog.Errors)
                 ReplacementDiagnosticRuntime.Record(new ReplacementDiagnosticTarget("catalog", null, null, "Manifest"),
                     "candidate-failed", "ReplacementCatalog.Discover", "catalog-error", error);
@@ -125,9 +128,11 @@ namespace AICResourceKit.Patches.ReplaceTexture
             InvalidateMtiSelection(previous, force);
             InvalidateResourceSelection(previous, force);
             InvalidatePxlSelection();
+            InvalidateOrdinaryViewers();
             RetryMtiRecords();
             RefreshResourceRecords();
             PumpPxlSurfaces();
+            PumpOrdinaryViewers();
             RefreshMtiSpineTextures(previous, force);
             RefreshSpineViewers(previous, force);
             RevokeUnauthorizedPreviews();

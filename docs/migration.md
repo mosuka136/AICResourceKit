@@ -47,6 +47,6 @@ dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEnc
 
 ## 实现进度
 
-P01 的调查、默认关闭的诊断和测试已迁入；标题入口的实机采集与画面验证见[诊断说明](diagnostics.md#验证范围)。后续已完成 P02 契约草案，见 [资源目标与清单契约](resource-contract.md)；P03 已补充直接 MTI 入口和未打包 Sprite 处理，实机验证与待查入口状态见[资源工具计划](planning/noel-resource-tools.md)；P04 已增加 PXL 图片/整页替换，见 [PXL 说明](pxl-replacement.md)；P05 及后续步骤继续逐项确认后实施。
+P01 的调查、默认关闭的诊断和测试已迁入；标题入口的实机采集与画面验证见[诊断说明](diagnostics.md#验证范围)。后续已完成 P02 契约草案，见 [资源目标与清单契约](resource-contract.md)；P03 已补充直接 MTI 入口和未打包 Sprite 处理，实机验证与待查入口状态见[资源工具计划](planning/noel-resource-tools.md)；P04 已增加 PXL 图片/整页替换，见 [PXL 说明](pxl-replacement.md)；P05 已增加普通 SpineViewer、剧情 JSON 和显式多页映射，见[剧情 Spine 说明](spine-viewer-replacement.md)；P06 及后续步骤继续逐项确认后实施。
 
 后续实施顺序见[资源工具计划](planning/noel-resource-tools.md)。静态调查 JSON 保留采集时的 `pluginVersion=2.1.1`，它是历史证据元数据；新插件版本为 `1.0.0`。

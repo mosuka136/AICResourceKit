@@ -46,6 +46,8 @@ python tools/validate-contract-schema.py
 | `SpineComposer` | 分层组合骨架、皮肤、动画及兼容映射 |
 | `ReplacementResourcePaths` / `IO` / `Keys` | 路径边界、明文与密文读取及格式兼容 |
 | `MtiResourceAddress` / `ReplacementMtiImagePatch` | 直接 MTI 图片的容器键、加载与释放入口；单图容器仍走已有入口 |
+| `ReplacementSpineAssetsPatch` / `SpineResourceAddress` | 普通查看器的真实加载来源、地址和消费者入口 |
+| `ViewerSpineBundle` / `SpinePageLayout` / `SpinePlayback` | 每个查看器的页面资源、布局校验与动画状态延续 |
 | `ReplacementPxlSource` / `ReplacementPxlPatch` | MTI 来源绑定，PXL 内嵌、打包、外部页和生命周期入口 |
 | `PxlTextureContents` | 原生 PNG 上传、共享纹理引用与原像素恢复 |
 | `ReplacementSpriteLayout` / `ReplacementResourceReleasePatch` | Sprite 几何兼容检查与创建、Resources 卸载转交 |
@@ -61,6 +63,7 @@ python tools/validate-contract-schema.py
 | [ReplacementRuntime.Spine.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Spine.cs) | 主立绘准备、安装、释放及状态 |
 | [ReplacementRuntime.SpineAssets.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineAssets.cs) | 创建 Spine Unity 资源及对象所有权 |
 | [ReplacementRuntime.Viewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Viewers.cs) | 消费者重绑、动画与皮肤延续、显示参数 |
+| [ReplacementRuntime.SpineViewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineViewers.cs) | 普通 SpineViewer 登记、候选应用、刷新和释放 |
 | [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | 单图容器、直接图片的缓存记录、应用及释放 |
 | [ReplacementRuntime.Pxl.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Pxl.cs) | 图片/页登记、共享纹理选择、准备与释放 |
 | [ReplacementRuntime.Resources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Resources.cs) | Resources.Load 首载与刷新 |
@@ -76,6 +79,8 @@ python tools/validate-contract-schema.py
 - `Resources.Load` 首次返回的对象可能被游戏长期持有，需要同步首载；两个重载嵌套时识别已经返回的替换对象。后续刷新和关闭后恢复原图保持引用；`Resources.UnloadAsset` 将替换对象的卸载转交原资源并清理自建对象。
 - PXL 在 MTI 初始化时登记 AssetBundle，通过非泛型 `AssetBundle.LoadAsset(string, Type)` 观察文本来源；不能拦截封闭的 `MTI.Load<TextAsset>`，否则 Mono 共享泛型代码可能破坏字体和纹理加载。
 - PXL 从实际 MTI 文本/字节来源绑定到 PxlCharacter，独立图片与整页地址分开；图层和材质继续引用原纹理。用原生 LoadImage 更新不可读纹理，不能直接对它调用 Reinitialize。
+- 普通 SpineViewer 在真实 prepareAtlasAssetsS 入口记录原始来源，在 prepare/attachPreload 时绑定消费者。不得改写 MTISpine 共享缓存；页面材质按查看器独立创建，保留模板和混合设置。
+- 普通查看器刷新沿用 AnimationState、TrackEntry、队列和事件订阅，重新映射动画及循环帧；不能用 clearAnim 重置剧情播放。主立绘仍走 SvTexture、污渍和预览的原流程。
 - Sprite 使用原整张纹理与原网格。打包、旋转或 UV 不能按原 rect/pivot/PPU 重建时明确拒绝，不能退化为看似成功的 FullRect 图片。
 - 清单先识别目标身份，再检查内容。身份重复使整个包无效；单个目标的字段或依赖出错可隔离，并保留其他有效目标。
 - 保留 v2 身份、包优先级、MTI null/空字符串语义和 Sensitive 开关行为。修改字段规则时同步更新 Schema、向量与契约说明。

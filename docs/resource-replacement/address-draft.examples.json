@@ -8,7 +8,7 @@
                 "kind": "spine-assets",
                 "loader": "mti",
                 "assetKey": "Fatal/fatal_nusi_0.atlas",
-                "atlasKey": "fatal_nusi_0",
+                "atlasKey": "fatal_nusi_0.atlas",
                 "jsonKey": "fatal_nusi_1"
             }
         },

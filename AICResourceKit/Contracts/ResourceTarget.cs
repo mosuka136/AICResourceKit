@@ -20,6 +20,8 @@ namespace AICResourceKit.Contracts
         public string Type;
         public string Loader;
         public PxlResourceAddress PxlAddress;
+        public SpineResourceAddress SpineAddress;
+        public readonly List<ResourcePageDraft> Pages = new List<ResourcePageDraft>();
         public string AssetKey;
         public string ImageKey;
         public string ResourcePath;
@@ -43,6 +45,7 @@ namespace AICResourceKit.Contracts
         {
             get
             {
+                foreach (var page in Pages) yield return new ResourceDependency("image", page.Image, page.PageKey);
                 if (Image != null) yield return new ResourceDependency("image", Image);
                 if (Atlas != null) yield return new ResourceDependency("atlas", Atlas);
                 if (Json != null) yield return new ResourceDependency("json", Json);
@@ -53,6 +56,7 @@ namespace AICResourceKit.Contracts
         {
             get
             {
+                if (Type == "spine-assets") return SpineAddress.Identity;
                 if (Type == "spine") return ResourceIdentity.Spine(SpineKey, JsonKey);
                 if (Loader == "pxl") return PxlAddress.Identity;
                 if (Loader == "mti") return ResourceIdentity.Mti(AssetKey, ImageKey);
@@ -65,6 +69,7 @@ namespace AICResourceKit.Contracts
     {
         public string Kind { get; }
         public string Path { get; }
-        public ResourceDependency(string kind, string path) { Kind = kind; Path = path; }
+        public string PageKey { get; }
+        public ResourceDependency(string kind, string path, string pageKey = null) { Kind = kind; Path = path; PageKey = pageKey; }
     }
 }

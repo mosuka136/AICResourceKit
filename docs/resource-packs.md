@@ -4,7 +4,7 @@
 
 开发调查可使用默认关闭的[资源加载诊断工具](diagnostics.md)，按目标导出实际入口与候选结果。能力草表区分代码证据和游戏验证，不改变本文的包格式与支持范围。
 
-## Spine 支持范围
+## 主立绘 Spine 支持范围
 
 - Spine 4.1 JSON
 - 单页 atlas
@@ -17,7 +17,9 @@
 
 PXL 图片与整页使用 `loader: pxl`，示例与限制见 [PXL 替换说明](pxl-replacement.md)。
 
-不支持 Spine 二进制格式、多页 atlas、自定义情绪状态机、散装 PNG 和 v1 `.portrait.json`。
+普通剧情骨架使用 `type: spine-assets`，支持单页和显式多页 atlas，见[普通 SpineViewer 替换](spine-viewer-replacement.md)。以下 JSON 分段与兼容映射规则可复用；显示参数只支持 `skeletonScale`，不使用主立绘污渍策略。
+
+不支持 Spine 二进制格式、主立绘多页 atlas、自定义情绪状态机、散装 PNG 和 v1 `.portrait.json`。
 
 ## 普通图片与 Sprite
 
