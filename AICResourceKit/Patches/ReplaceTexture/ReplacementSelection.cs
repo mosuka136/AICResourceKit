@@ -47,6 +47,17 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 && (loader == "mti" ? ResourceIdentity.MatchesMti(target.AssetKey, target.ImageKey, key, imageKey)
                     : target.ResourcePath == key && target.ObjectType == objectType));
 
+        internal ReplacementTarget Pxl(ISet<string> identities)
+        {
+            var matches = targets.Where(target => target.Loader == "pxl" && identities.Contains(target.Identity)).ToList();
+            if (matches.GroupBy(target => target.PackageId).Any(group => group.Count() > 1))
+                throw new InvalidOperationException("A pack addresses the same PXL texture through multiple aliases; keep one image/page target.");
+            return matches.LastOrDefault();
+        }
+
+        internal IEnumerable<ReplacementTarget> PxlTargets(string assetKey, string textKey) => targets
+            .Where(target => target.Loader == "pxl" && target.PxlAddress.AssetKey == assetKey && target.PxlAddress.TextKey == textKey);
+
         internal bool Invalid(string identity) => invalid.Contains(identity);
         internal List<ReplacementTarget> NewlyEnabledPortraits(ReplacementSelection previous) => targets
             .Where(target => target.Type == "spine" && !Invalid(target.Identity)

@@ -46,8 +46,12 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 objectType == "Sprite" || objectType == "Texture2D"
                     ? ResourceIdentity.Resources(path, objectType) : null);
 
+        internal static ReplacementDiagnosticTarget Pxl(PxlResourceAddress address) =>
+            new ReplacementDiagnosticTarget("pxl", address.AssetKey, address.TextKey, "Texture", address.Identity);
+
         internal static ReplacementDiagnosticTarget FromManifest(ReplacementTarget target) =>
             target.Type == "spine" ? Spine(target.SpineKey, target.JsonKey)
+                : target.Loader == "pxl" ? Pxl(target.PxlAddress)
                 : target.Loader == "mti" ? Mti(target.AssetKey, target.ImageKey)
                 : Resources(target.ResourcePath, target.ObjectType);
     }

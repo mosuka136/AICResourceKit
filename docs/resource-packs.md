@@ -15,6 +15,8 @@
 - 可覆盖立绘比例、偏移、宽高和左右站位偏移
 - 支持 `auto`、`legacy`、`disabled` 三种污渍效果策略
 
+PXL 图片与整页使用 `loader: pxl`，示例与限制见 [PXL 替换说明](pxl-replacement.md)。
+
 不支持 Spine 二进制格式、多页 atlas、自定义情绪状态机、散装 PNG 和 v1 `.portrait.json`。
 
 ## 普通图片与 Sprite

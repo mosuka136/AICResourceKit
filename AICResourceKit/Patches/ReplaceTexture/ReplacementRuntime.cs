@@ -26,7 +26,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private static bool initialized;
         internal static bool HasWork => spineStates.Values.Any(state => state.Shown != null)
             || AllMtiRecords().Any(record => record.Replacement != null)
-            || resourceRecords.Values.Any(record => record.Source != null);
+            || resourceRecords.Values.Any(record => record.Source != null)
+            || pxlSurfaces.Values.Any(surface => surface.Applied != null);
 
         internal static void Initialize()
         {
@@ -79,6 +80,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (selectionDelay.Waiting) return;
             RetryMtiRecords();
             RefreshResourceRecords();
+            PumpPxlSurfaces();
             PumpSpines();
             Collect();
         }
@@ -98,6 +100,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (!ReplacementDiagnosticRuntime.Enabled) return;
             foreach (var package in catalog.Packages)
                 foreach (var target in package.Targets) ReplacementDiagnosticRuntime.Discover(target);
+            DiscoverPxlBindings();
             foreach (string error in catalog.Errors)
                 ReplacementDiagnosticRuntime.Record(new ReplacementDiagnosticTarget("catalog", null, null, "Manifest"),
                     "candidate-failed", "ReplacementCatalog.Discover", "catalog-error", error);
@@ -121,8 +124,10 @@ namespace AICResourceKit.Patches.ReplaceTexture
             InvalidateSpineSelection(previous, force);
             InvalidateMtiSelection(previous, force);
             InvalidateResourceSelection(previous, force);
+            InvalidatePxlSelection();
             RetryMtiRecords();
             RefreshResourceRecords();
+            PumpPxlSurfaces();
             RefreshMtiSpineTextures(previous, force);
             RefreshSpineViewers(previous, force);
             RevokeUnauthorizedPreviews();
@@ -209,6 +214,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         {
             foreach (var record in AllMtiRecords()) Restore(record);
             foreach (var record in resourceRecords.Values) RestoreResource(record);
+            foreach (var surface in pxlSurfaces.Values) RestorePxlSurface(surface);
         }
 
         private static bool CanRetain(IEnumerable<ReplacementPackage> packages, string identity)

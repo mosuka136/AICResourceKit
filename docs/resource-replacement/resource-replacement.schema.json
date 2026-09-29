@@ -30,6 +30,9 @@
                     },
                     {
                         "$ref": "#/definitions/spine"
+                    },
+                    {
+                        "$ref": "#/definitions/pxl"
                     }
                 ]
             }
@@ -527,6 +530,188 @@
                     }
                 }
             ]
+        },
+        "pxl": {
+            "type": "object",
+            "required": [
+                "type",
+                "loader",
+                "address",
+                "image"
+            ],
+            "properties": {
+                "type": {
+                    "const": "texture"
+                },
+                "loader": {
+                    "const": "pxl"
+                },
+                "image": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                },
+                "address": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "required": [
+                                "source",
+                                "kind",
+                                "imageId",
+                                "imageId2",
+                                "role"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "source": {
+                                    "type": "object",
+                                    "required": [
+                                        "loader",
+                                        "assetKey",
+                                        "textKey"
+                                    ],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "loader": {
+                                            "const": "mti"
+                                        },
+                                        "assetKey": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?=.*\\S).+$"
+                                        },
+                                        "textKey": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?=.*\\S).+$"
+                                        }
+                                    }
+                                },
+                                "kind": {
+                                    "const": "pxl-image"
+                                },
+                                "imageId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9]+$"
+                                },
+                                "imageId2": {
+                                    "type": "string",
+                                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+                                },
+                                "role": {
+                                    "enum": [
+                                        "I",
+                                        "P"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "source",
+                                "kind",
+                                "storage",
+                                "pageIndex"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "source": {
+                                    "type": "object",
+                                    "required": [
+                                        "loader",
+                                        "assetKey",
+                                        "textKey"
+                                    ],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "loader": {
+                                            "const": "mti"
+                                        },
+                                        "assetKey": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?=.*\\S).+$"
+                                        },
+                                        "textKey": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?=.*\\S).+$"
+                                        }
+                                    }
+                                },
+                                "kind": {
+                                    "const": "pxl-page"
+                                },
+                                "storage": {
+                                    "const": "external"
+                                },
+                                "pageIndex": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 2147483647
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "source",
+                                "kind",
+                                "storage",
+                                "pageOrdinal",
+                                "imageType"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "source": {
+                                    "type": "object",
+                                    "required": [
+                                        "loader",
+                                        "assetKey",
+                                        "textKey"
+                                    ],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "loader": {
+                                            "const": "mti"
+                                        },
+                                        "assetKey": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?=.*\\S).+$"
+                                        },
+                                        "textKey": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?=.*\\S).+$"
+                                        }
+                                    }
+                                },
+                                "kind": {
+                                    "const": "pxl-page"
+                                },
+                                "storage": {
+                                    "const": "packed"
+                                },
+                                "pageOrdinal": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 2147483647
+                                },
+                                "imageType": {
+                                    "enum": [
+                                        0,
+                                        1,
+                                        2
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
         }
     }
 }

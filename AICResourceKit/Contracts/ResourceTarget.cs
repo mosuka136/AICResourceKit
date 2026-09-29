@@ -19,6 +19,7 @@ namespace AICResourceKit.Contracts
     {
         public string Type;
         public string Loader;
+        public PxlResourceAddress PxlAddress;
         public string AssetKey;
         public string ImageKey;
         public string ResourcePath;
@@ -53,6 +54,7 @@ namespace AICResourceKit.Contracts
             get
             {
                 if (Type == "spine") return ResourceIdentity.Spine(SpineKey, JsonKey);
+                if (Loader == "pxl") return PxlAddress.Identity;
                 if (Loader == "mti") return ResourceIdentity.Mti(AssetKey, ImageKey);
                 return ResourceIdentity.Resources(ResourcePath, ObjectType);
             }

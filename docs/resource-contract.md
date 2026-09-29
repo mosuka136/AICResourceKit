@@ -1,6 +1,6 @@
 # 资源目标与清单契约（P02）
 
-状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。本文的新地址草案只描述定位与校验规则，不表示已经接入新的资源替换入口。
+状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。PXL 子集已接入 v2 `loader: pxl`；其他新地址草案仍只描述定位与校验规则。
 
 资源包创建、校验命令及可运行的 C# API 示例见[资源契约使用说明](usage.md)。
 
@@ -19,7 +19,8 @@
 - `ResourceManifest.Parse`：严格解析整个清单，返回包 ID、目标及显式依赖；无效目标或重复身份导致失败。
 - `ResourceManifest.ReadHeader`、`IdentityOf`、`ReadTarget`：运行时分步解析，便于保留可识别的失败目标并隔离其他目标。
 - `ResourceIdentity`：生成既有 v2 身份，提供 MTI 匹配谓词。
-- `ResourceAddressDraft.IdentityOf`、`ValidatePages`：验证尚未接入的新地址与完整页映射。
+- `PxlResourceAddress.Parse`、`Describe`、`Embedded`、`Page`：PXL 可安装地址的解析、输出与构造。
+- `ResourceAddressDraft.IdentityOf`、`ValidatePages`：保留独立地址与完整页映射草案 API，不直接触发替换。
 
 解析 API 接受已解码的 `Dictionary<string, object>`，数组为 `List<object>`，数字为 `float`、`double`、`int` 或 `long`。JSON 解码由宿主负责：插件沿用 Spine 解码器，加密工具使用 System.Text.Json。制作工具应保留字符串键的大小写，不将 PXL 的第二图片 ID 经单精度浮点数转换。
 
@@ -61,6 +62,14 @@ MTI 保留历史行为：
 
 PXL 主纹理的 `MTI.LoadContainerOneImage` 调用省略 `image_key`，使用省略/null 的清单形式；不要填写 `load_key`、角色显示名或导出 PNG 文件名。直接 `MTI.LoadImage` 使用容器与真实图片键表达 v2 目标，已接入 MImage 及缓存材质的更新；MTIOneImage 保留已有入口。Sprite 支持范围和首载要求见[使用说明](usage.md)。
 
+## PXL 地址扩展
+
+v2 新增 `type=texture`、`loader=pxl`、`address` 和 `image`。`address` 接受下文的 `pxl-image` 或 `pxl-page`，来源限定为实际跟踪到的 MTI 文本/字节读取。旧版插件拒绝该加载器，需更新后重启；旧包无需改写。
+
+运行时身份为 `texture\npxl\n` 加 draft1 地址去掉 `draft1|` 后的长度前缀编码。它与 MTI 主纹理及独立 draft1 身份互相隔离。`imageType` 额外限定为 0、1、2。同一纹理的外部地址和打包地址是别名；同包重复覆盖同一物理纹理在运行时拒绝，不同包仍按列表顺序选择最后一项。
+
+每个目标声明一个 PNG 依赖，可以在同一包内列出多页；不增加 Spine 多页 atlas 支持。完整字段示例与诊断复制方法见 [PXL 说明](pxl-replacement.md)。
+
 ## v2 字段、依赖与优先级
 
 顶层为 `formatVersion=2`、非空 `id` 和非空 `targets`。Texture 目标必须提供 `image`。Spine 可提供 `image`、`atlas`、`spine.json + spine.replace`、兼容映射、显示参数和污渍策略，详细字段见 [现有资源包说明](resource-packs.md)。
@@ -84,7 +93,7 @@ PXL 主纹理的 `MTI.LoadContainerOneImage` 调用省略 `image_key`，使用�
 | 已知身份但字段或依赖失败 | 记录无效身份，其余有效目标仍可登记 | 拒绝整个导出 |
 | 依赖缺失、内容不兼容 | 报错，不把候选标为已应用 | 文件校验失败时不发布输出 |
 
-登记有效目标不等于已经显示。刷新后有损坏候选时，现有运行时只在来源仍有授权、文件与路径约束仍成立的情况下尝试保留旧资源；撤销开关或 Sensitive 授权则恢复/释放。该行为仍由现有生命周期实现负责，P02 不扩大其保证。
+登记有效目标不等于已经显示。PXL 对失败纹理恢复原像素，并按图片/页报告失败；其他独立纹理继续处理。刷新后有损坏候选时，现有运行时只在来源仍有授权、文件与路径约束仍成立的情况下尝试保留旧资源；撤销开关或 Sensitive 授权则恢复/释放。该行为仍由现有生命周期实现负责，P02 不扩大其保证。
 
 未知附加字段沿用旧版忽略行为，因此不能靠给 v2 增加 `pages` 等字段声明新语义。当前公共解析及插件明确拒绝 `formatVersion=3`。后续若多页或新的加载范围确实无法兼容 v2，应在接入阶段设计并显式支持新版本，不批量改写已有包。
 
@@ -96,8 +105,8 @@ PXL 主纹理的 `MTI.LoadContainerOneImage` 调用省略 `image_key`，使用�
 | --- | --- | --- |
 | `spine-assets` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `jsonKey` | 来自 prepareAtlasAssetsS 的真实参数；Resources 不允许混入 assetKey；P05 接入 |
 | `atlas-region` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `region` | 区域属于共享 atlas，不添加无关骨架 JSON；P06 接入 |
-| `pxl-image` | `source={loader:mti,assetKey,textKey}` + `imageId` + `imageId2` + `role=I/P` | 来源需在读取 PXL 文本资产处绑定到角色对象，不能用 external_png_header 的默认值猜测；P04 接入 |
-| `pxl-page` | 同一 PXL source + `storage=external,pageIndex`，或 `storage=packed,pageOrdinal,imageType` | 外部数组槽位与打包页序号不是同一标识；P04 接入 |
+| `pxl-image` | `source={loader:mti,assetKey,textKey}` + `imageId` + `imageId2` + `role=I/P` | 来源需在读取 PXL 文本资产处绑定到角色对象，不能用 external_png_header 的默认值猜测；已通过 `loader: pxl` 接入 |
+| `pxl-page` | 同一 PXL source + `storage=external,pageIndex`，或 `storage=packed,pageOrdinal,imageType` | 外部数组槽位与打包页序号不是同一标识；已通过 `loader: pxl` 接入 |
 | `video` | `assetKey` + `clipKey` | 已观察到的 MTI VideoClip 来源；P08 处理播放器与生命周期 |
 
 以上地址拒绝未声明字段和绝对路径。MPCC 当前只有内容 name/chr_name，尚未证明文件来源到实例的绑定；草案明确拒绝 `kind=mpcc`，P07 调查后再定义。来源不清楚的 Sprite 或 atlas 也不能仅从导出名称生成地址。

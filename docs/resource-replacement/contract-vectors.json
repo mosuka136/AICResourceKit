@@ -618,6 +618,301 @@
                     }
                 ]
             }
+        },
+        {
+            "name": "pxl-mixed-image-and-pages",
+            "valid": true,
+            "schemaValid": true,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "packed",
+                            "pageOrdinal": 1,
+                            "imageType": 1
+                        },
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-image",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "imageId": "4294967295",
+                            "imageId2": "123.45678901234567",
+                            "role": "I"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "identities": [
+                "texture\npxl\n8:pxl-page3:mti17:PxlNoel/noel.pxls9:noel.pxls8:external1:0",
+                "texture\npxl\n8:pxl-page3:mti17:PxlNoel/noel.pxls9:noel.pxls6:packed1:11:1",
+                "texture\npxl\n9:pxl-image3:mti17:PxlNoel/noel.pxls9:noel.pxls10:429496729516:405EDD3C07FB4C981:I"
+            ],
+            "dependencies": [
+                "image:page.png",
+                "image:page.png",
+                "image:page.png"
+            ]
+        },
+        {
+            "name": "pxl-duplicate-address",
+            "valid": false,
+            "schemaValid": true,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-invalid-role",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-image",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "imageId": "4294967295",
+                            "imageId2": "123.45678901234567",
+                            "role": "mask"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-negative-page",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": -1
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-unknown-image-type",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "packed",
+                            "pageOrdinal": 1,
+                            "imageType": 3
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-id-overflow",
+            "valid": false,
+            "schemaValid": true,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-image",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "imageId": "4294967296",
+                            "imageId2": "123.45678901234567",
+                            "role": "I"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-id2-nonfinite",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-image",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "imageId": "4294967295",
+                            "imageId2": "NaN",
+                            "role": "I"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-invalid-source",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "../Pxl/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "pxl-unobserved-source-loader",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 2,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "resources",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            }
         }
     ]
 }

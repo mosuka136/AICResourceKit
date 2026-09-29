@@ -46,6 +46,8 @@ python tools/validate-contract-schema.py
 | `SpineComposer` | 分层组合骨架、皮肤、动画及兼容映射 |
 | `ReplacementResourcePaths` / `IO` / `Keys` | 路径边界、明文与密文读取及格式兼容 |
 | `MtiResourceAddress` / `ReplacementMtiImagePatch` | 直接 MTI 图片的容器键、加载与释放入口；单图容器仍走已有入口 |
+| `ReplacementPxlSource` / `ReplacementPxlPatch` | MTI 来源绑定，PXL 内嵌、打包、外部页和生命周期入口 |
+| `PxlTextureContents` | 原生 PNG 上传、共享纹理引用与原像素恢复 |
 | `ReplacementSpriteLayout` / `ReplacementResourceReleasePatch` | Sprite 几何兼容检查与创建、Resources 卸载转交 |
 | `ReplacementDiagnostic*` | 可关闭的观察器与报告，不改变目标匹配 |
 | `PortraitControl*` / `PortraitReplacementPreview` | 主界面立绘控制、预览及会话状态 |
@@ -60,6 +62,7 @@ python tools/validate-contract-schema.py
 | [ReplacementRuntime.SpineAssets.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineAssets.cs) | 创建 Spine Unity 资源及对象所有权 |
 | [ReplacementRuntime.Viewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Viewers.cs) | 消费者重绑、动画与皮肤延续、显示参数 |
 | [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | 单图容器、直接图片的缓存记录、应用及释放 |
+| [ReplacementRuntime.Pxl.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Pxl.cs) | 图片/页登记、共享纹理选择、准备与释放 |
 | [ReplacementRuntime.Resources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Resources.cs) | Resources.Load 首载与刷新 |
 | [ReplacementRuntime.Textures.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Textures.cs) | 共用的纹理准备、上传节流、原位更新及原图恢复 |
 | [ReplacementPreviewResources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementPreviewResources.cs) | 临时立绘预览资源与会话衔接 |
@@ -71,6 +74,8 @@ python tools/validate-contract-schema.py
 - 所有 Unity 对象创建、绑定、销毁和运行时状态修改在主线程执行；后台任务只准备数据。
 - 直接 `MTI.LoadImage` 首载同步应用；后续更新 `MImage.Tx` 时游戏会同步缓存材质。MTIOneImage 内部的同名调用由原单图入口管理，避免重复应用。
 - `Resources.Load` 首次返回的对象可能被游戏长期持有，需要同步首载；两个重载嵌套时识别已经返回的替换对象。后续刷新和关闭后恢复原图保持引用；`Resources.UnloadAsset` 将替换对象的卸载转交原资源并清理自建对象。
+- PXL 在 MTI 初始化时登记 AssetBundle，通过非泛型 `AssetBundle.LoadAsset(string, Type)` 观察文本来源；不能拦截封闭的 `MTI.Load<TextAsset>`，否则 Mono 共享泛型代码可能破坏字体和纹理加载。
+- PXL 从实际 MTI 文本/字节来源绑定到 PxlCharacter，独立图片与整页地址分开；图层和材质继续引用原纹理。用原生 LoadImage 更新不可读纹理，不能直接对它调用 Reinitialize。
 - Sprite 使用原整张纹理与原网格。打包、旋转或 UV 不能按原 rect/pivot/PPU 重建时明确拒绝，不能退化为看似成功的 FullRect 图片。
 - 清单先识别目标身份，再检查内容。身份重复使整个包无效；单个目标的字段或依赖出错可隔离，并保留其他有效目标。
 - 保留 v2 身份、包优先级、MTI null/空字符串语义和 Sensitive 开关行为。修改字段规则时同步更新 Schema、向量与契约说明。

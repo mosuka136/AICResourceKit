@@ -14,7 +14,7 @@
 | `MTI.LoadContainerOneImage` | 既有 v2 主纹理 | PXL 省略 `image_key`，目标保持空值；`load_key` 是持有者标记 |
 | `MTI.LoadImage` | v2 直接图片替换 | 按容器和图片键匹配，更新 MImage 及缓存材质；ver030g 已验证 key_noel、difficulty 的首次加载与画面；刷新、关闭和释放仍待实机核对 |
 | `Resources.Load` | v2 Texture2D / 未打包 Sprite | Sprite 保留原网格与 UV；打包/旋转布局拒绝。两个目录 Sprite 的实际消费入口仍未确认 |
-| PXL 内嵌、打包页和额外页 | 本项只观察 | 记录图片 id/id2、I/P、打包页序号、外部页索引和页类型；完整替换待 P04 |
+| PXL 内嵌、打包页和额外页 | v2 `loader: pxl` 图片与整页替换 | MTI 来源、原始 ID/I/P、外部槽位或打包页序号定位；共享纹理原位更新，逐页报告结果 |
 | 普通 `SpineViewer` / Fatal | 本项只观察资源加载 | 不经过主立绘适配器；部分图片经过 MTI 不代表骨架已接入 |
 | PICT / EF_PICT | 本项只观察区域查找 | `SpvLoader.GetImage` 直接取 atlas 区域，能够使用默认骨架以外的图片 |
 | MPCC | 本项只观察解码器 | 已知编辑器读取器及 PXL 页组合机制；五个文件的游戏调用和角色归属待查 |
@@ -71,6 +71,12 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 
 报告先写同目录临时文件，再原子替换，避免读取半份 JSON。当前会话继续运行时，写入失败会保留内存记录并重试，不中断资源加载；若结束或切换会话时仍无法写入，最新记录不会落盘，原因见日志。报告包含参数、包 ID 和错误原因，不包含图片或解密内容。
 
+## PXL 地址与结果
+
+新适配器使用 `PXL image/page / ReplacementRuntime` 入口，`details.address` 可直接复制到 `loader: pxl` 目标中，尺寸来自当前原纹理。`image-registered` 表示图片已登记；`page-awaiting-texture` 表示外部页仍待到达；`shared-texture-updated` 表示共享纹理完成像素上传。`address-not-found` 表示已解码的来源中没有对应图片角色或页。
+
+同一纹理可能有多个地址，诊断会逐个列出，`sharedAddresses` 表示其别名数量。逐项检查成功、失败与待到达状态，不能用一页成功概括整套 PXLS。P01 旧观察器输出保留；制作新包应使用带 `details.address` 的适配器记录。操作见 [PXL 说明](pxl-replacement.md)。
+
 ## 状态语义
 
 诊断 `reportVersion=1` 与资源包 `formatVersion` 无关。直接 MTI 图片使用既有 v2 身份；尚未接入替换的新观察地址仍为 `runtimeIdentity=null`，不提前定义新包类型。
@@ -100,5 +106,7 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 自动测试覆盖诊断筛选、聚合、导出、错误处理、方法签名和调查清单。构建环境、引用 DLL 与测试命令见[开发说明](development.md)。
 
 ver030g 已使用 `sakura-furisode-title-v1` 验证 `MTI_title/key_noel` 和 `MTI_title/difficulty`：两项均记录 `candidate-applied / mimage-texture-assigned`，标题和难度选择界面显示对应替换图片。该验证覆盖首次加载和画面，不包括刷新、关闭与释放。
+
+ver030g 的 PXL 运行时验证覆盖 `PxlNoel/noel.pxls` 外部页、`PxlNoel/noel_bassrobe.pxls` 内嵌打包页、`MTI_mgm_ttr` 中的 `_icons_ttr.pxls` 和 `Pxl/_icons.pxls`。混合内嵌/外部页及额外页夹具验证了替换、刷新、停用恢复、延迟重绑、共享释放及单页错误隔离；同时检查原纹理引用、不可读和压缩纹理、mipmap、RenderTexture 与字体初始化。该检查基于实际 Unity 对象和像素，不替代全部动作、剧情及场景画面验收。
 
 P01 静态清单保留采集时的状态和计数，不自动同步后续实机验证。其他目标仍需在对应场景采集实际报告并检查画面；静态调查、方法签名与 `candidate-applied` 均不能独立证明画面正确。

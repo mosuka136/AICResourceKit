@@ -2,7 +2,7 @@
 
 本文介绍插件安装与日常操作、v2 资源包制作、清单校验、公共 API 和地址草案。玩家可先阅读第 1 节和第 2.4 节；资源包作者与工具开发者按下表选择后续内容。
 
-当前可安装的清单版本为 `formatVersion: 2`；新地址和多页映射只供开发验证，尚不能作为资源包安装。
+当前可安装的清单版本为 `formatVersion: 2`；PXL 图片与页目标使用 `loader: pxl`，详见[PXL 使用说明](pxl-replacement.md)。独立地址草案文件和多页 Spine 映射尚不能作为资源包安装。
 
 ## 1. 安装与日常操作
 
@@ -11,7 +11,7 @@
 | 制作或修改资源包 | 按第 2 节创建清单，按第 3 节校验，然后在游戏中启用 |
 | 检查项目的契约测试是否正常 | 运行第 3.1 节的现有检查命令 |
 | 为自己的工具解析目标、检查重复或收集依赖 | 链接 `Contracts` 源码，使用第 4 节的 C# 示例 |
-| 研究未来的 PXL、剧情 Spine、视频或多页目标 | 使用第 5 节的地址草案 API；不会触发资源替换 |
+| 研究未来的剧情 Spine、视频或多页 Spine 目标 | 使用第 5 节的地址草案 API；不会触发资源替换 |
 | 查看字段和错误处理的完整定义 | 阅读[资源目标与清单契约](resource-contract.md) |
 
 除明确标为游戏目录的路径外，下面的命令均从 AICResourceKit 仓库根目录执行。C# 示例与加密工具需要 .NET 8 SDK；Schema 检查需要 Python 和 `jsonschema`。游戏插件运行不需要 Python。
@@ -175,7 +175,7 @@ BepInEx/plugins/AICResourceKit/ReplaceTexture/
 
 需要排查时，将诊断筛选设为 `MTI_title`，查看 `entry-hit`、`candidate-applied` 和 `candidate-failed`。当前确认的消费者是标题的 `MImage` 材质缓存；自行复制纹理或材质的其他消费者仍需逐个核对。
 
-`MTIOneImage` 继续由已有单图入口处理，保留第 2.3 节的空键规则，避免它内部的 `LoadImage` 再次应用同一个目标。PXL 额外页仍属于后续能力。
+`MTIOneImage` 继续由已有单图入口处理，保留第 2.3 节的空键规则，避免它内部的 `LoadImage` 再次应用同一个目标。PXL 内嵌和额外页使用独立的 [PXL 适配器](pxl-replacement.md)。
 
 `wplmode_` 虽存在于 `mti_title_wpl.dat`，其实际加载参数仍待确认，因此目前不提供该图片的可安装定位示例。ver030g 的两张标题图已验证首次加载与画面；修改资源后仍应检查刷新和关闭后的显示，自动测试不代替实机检查。
 
@@ -207,6 +207,10 @@ BepInEx/plugins/AICResourceKit/ReplaceTexture/
 
 `mgm_bun.pxls.bytes.texture_0` 与 `damage_backvoreenemy` 的 Sprite 消费入口尚未确认，不能直接把对象名填入 `path`。前者已确认的是同包 Texture2D 的 PXL 路径，不能据此判断 Sprite 也经过 Resources。详细证据与限制见[诊断说明](diagnostics.md)。
 
+### 2.7 替换 PXL 图片与页面
+
+使用 `type: "texture"`、`loader: "pxl"`、`address` 和 `image`。先从运行时诊断复制来源、原始 ID 或页序号，再准备同尺寸的完整 PNG；外部、内嵌、打包与额外页分别登记，保留原帧和图层关系。完整示例、共享页冲突及刷新规则见 [PXL 使用说明](pxl-replacement.md)。
+
 ## 3. 校验清单
 
 ### 3.1 检查项目自带规则和测试向量
@@ -223,7 +227,7 @@ python -m pip install jsonschema
 python tools/validate-contract-schema.py
 ```
 
-当前成功输出为 `Schema and all 28 authoring vectors passed.`。向量数量以后可能增加。这个脚本只读取仓库中的固定向量，没有接收自有清单路径的参数。
+成功时输出 `Schema and all N authoring vectors passed.`，其中 N 为当前向量数。这个脚本只读取仓库中的固定向量，没有接收自有清单路径的参数。
 
 运行公共语义和兼容性测试：
 
@@ -445,5 +449,6 @@ PXL 的 `imageId`、`imageId2` 都以字符串传入；`imageId2` 应保留原�
 | 文件存在但提示路径越界或授权树错误 | 按清单位置解析相对路径；共享文件必须在资源根目录内，且不能跨普通/Sensitive 边界 |
 | Sprite 提示 packed、transformed layout 或尺寸不匹配 | 使用原整张纹理；当前不支持打包/旋转 Sprite，不能改用裁片尺寸绕过检查 |
 | 已显示的 Resources 图片在首次启用包后未变化 | 在首次加载前启用，或重新加载对应界面；旧原始引用不会自动变成替换对象 |
-| 工具能生成新地址，但游戏没有变化 | 地址草案不连接运行时替换；等待对应适配器实现后再制作可安装包 |
+| 工具能生成新地址，但游戏没有变化 | 独立地址草案不会触发替换；PXL 须放入 v2 `loader: pxl` 目标，其他类型等待对应适配器 |
+| PXL 提示 address-not-found 或 page-awaiting-texture | 检查诊断中的真实来源、ID/页号，确认目标图片已由游戏加载 |
 | 修改包后仍看到旧内容 | 按 `Ctrl+T` 刷新，检查包开关、排序和诊断中的失败记录；坏候选可能保留仍获授权的旧资源 |

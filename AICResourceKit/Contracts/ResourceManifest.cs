@@ -45,11 +45,12 @@ namespace AICResourceKit.Contracts
             if (type == "spine") return ResourceIdentity.Spine(Required(json, "key"), Required(json, "jsonKey"));
             if (type != "texture") throw new InvalidDataException("Target type must be texture or spine.");
             string loader = Required(json, "loader").ToLowerInvariant();
+            if (loader == "pxl") return PxlResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address"))).Identity;
             if (loader == "mti")
                 return ResourceIdentity.Mti(Required(json, "assetKey"), ContractValue.String(json, "imageKey"));
             if (loader == "resources")
                 return ResourceIdentity.Resources(Required(json, "path"), Required(json, "objectType"));
-            throw new InvalidDataException("Texture loader must be mti or resources.");
+            throw new InvalidDataException("Texture loader must be mti, resources or pxl.");
         }
 
         public static ResourceTarget ReadTarget(Dictionary<string, object> json) => ReadTarget<ResourceTarget>(json);
@@ -61,7 +62,9 @@ namespace AICResourceKit.Contracts
             {
                 target.Loader = Required(json, "loader").ToLowerInvariant();
                 target.Image = Required(json, "image");
-                if (target.Loader == "mti")
+                if (target.Loader == "pxl")
+                    target.PxlAddress = PxlResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address")));
+                else if (target.Loader == "mti")
                 {
                     target.AssetKey = Required(json, "assetKey");
                     target.ImageKey = ContractValue.String(json, "imageKey");
@@ -73,7 +76,7 @@ namespace AICResourceKit.Contracts
                     if (target.ObjectType != "Texture2D" && target.ObjectType != "Sprite")
                         throw new InvalidDataException("Resources objectType must be Texture2D or Sprite.");
                 }
-                else throw new InvalidDataException("Texture loader must be mti or resources.");
+                else throw new InvalidDataException("Texture loader must be mti, resources or pxl.");
                 return target;
             }
             if (target.Type != "spine") throw new InvalidDataException("Target type must be texture or spine.");
