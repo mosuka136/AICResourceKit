@@ -242,6 +242,11 @@ namespace AICResourceKit.Patches.ReplaceTexture
                         || (record.Container is XX.MTIOneImage single && ReferenceEquals(single.Image, surface.Texture)))
                     && selection.Texture("mti", record.AssetKey, record.ImageKey, null) != null))
                     throw new InvalidOperationException("The same PXL texture is also targeted by a legacy MTI pack; enable only one addressing route.");
+                if (HasAtlasEdits(surface.Texture))
+                    throw new InvalidOperationException("The same texture is targeted by both PXL and atlas packs; enable one addressing route.");
+                if (surface.Applied != null && !CanRetain(new[] { surface.Applied.Owner }, surface.Applied.Identity))
+                    RestorePxlSurface(surface);
+                if (scan != null && !firstAccess) return;
                 byte[] bytes;
                 if (firstAccess)
                 {
@@ -254,9 +259,6 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 {
                     if (surface.Pending == null)
                     {
-                        // 撤销授权时立即恢复，不等待新文件准备。
-                        if (surface.Applied != null && !CanRetain(new[] { surface.Applied.Owner }, surface.Applied.Identity))
-                            RestorePxlSurface(surface);
                         surface.Pending = PrepareTexture(target);
                         DescribePxl(surface, "candidate-pending", "preparing", target.PackageId);
                     }
@@ -301,6 +303,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void DescribePxl(PxlBinding binding, string stage, string outcome, string reason = null)
         {
+            TrackResourceResult(binding.Address.Identity, stage, reason);
             if (!ReplacementDiagnosticRuntime.Enabled) return;
             var texture = binding.Surface?.Texture;
             ReplacementDiagnosticRuntime.Record(ReplacementDiagnosticTarget.Pxl(binding.Address), stage,

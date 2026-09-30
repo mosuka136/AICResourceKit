@@ -11,6 +11,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
     {
         internal ReplacementPackage Owner;
         internal string PackageId;
+        internal int TargetIndex;
         internal string ImagePath;
         internal readonly Dictionary<string, string> PagePaths = new Dictionary<string, string>(StringComparer.Ordinal);
         internal string AtlasPath;
@@ -25,12 +26,18 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal readonly List<ReplacementTarget> Targets = new List<ReplacementTarget>();
         internal readonly HashSet<string> InvalidTargetIdentities = new HashSet<string>(StringComparer.Ordinal);
         internal bool HasUnidentifiedTargetErrors;
+
+        // 未识别的坏目标只保留无法在新清单中定位的旧资源，不阻止已明确解析的其他目标刷新。
+        internal bool HasUnidentifiedErrorFor(string identity) => HasUnidentifiedTargetErrors
+            && !Targets.Any(target => target.Identity == identity);
     }
 
     internal sealed class ReplacementCatalog
     {
         internal readonly List<ReplacementPackage> Packages = new List<ReplacementPackage>();
         internal readonly List<string> Errors = new List<string>();
+        internal readonly List<ReplacementIssue> Issues = new List<ReplacementIssue>();
+        internal readonly List<ReplacementManifestInfo> Manifests = new List<ReplacementManifestInfo>();
         // 磁盘上所有清单声明的 id，包含未授权的敏感包、解析失败的包和 id 重复的包。
         // 配置行是否“对应的包已不存在”只依据这个集合，与敏感授权和解析结果无关。
         internal readonly HashSet<string> DeclaredIds = new HashSet<string>(StringComparer.Ordinal);
@@ -64,19 +71,23 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 try
                 {
                     bool isSensitive = PortraitCatalog.Within(sensitive, file);
+                    result.Manifests.Add(new ReplacementManifestInfo { Id = declared, Path = file, Sensitive = isSensitive });
                     if (isSensitive && !allowSensitive) continue;
                     if (json == null)
                         throw unreadable ?? new InvalidDataException("Replacement manifest could not be read.");
-                    var package = ParsePackage(root, sensitive, file, isSensitive, verified, result.Errors, json);
+                    var package = ParsePackage(root, sensitive, file, isSensitive, verified, result, json);
                     result.Packages.Add(package);
                 }
-                catch (Exception ex) { result.Errors.Add(file + ": " + ex.Message); }
+                catch (Exception ex) { result.Errors.Add(file + ": " + ex.Message); result.Issues.Add(ReplacementIssue.Create(file, declared, null, null, ex)); }
             }
             cancellationToken.ThrowIfCancellationRequested();
             foreach (var duplicate in result.Packages.GroupBy(package => package.Id, StringComparer.Ordinal)
                 .Where(group => group.Count() > 1).ToList())
             {
                 result.Errors.Add("Duplicate replacement id: " + duplicate.Key);
+                foreach (var package in duplicate)
+                    result.Issues.Add(ReplacementIssue.Create(package.ManifestPath, package.Id, null, null,
+                        new InvalidDataException("Duplicate replacement id: " + duplicate.Key)));
                 result.Packages.RemoveAll(package => package.Id == duplicate.Key);
             }
             return result;
@@ -135,7 +146,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         }
 
         private static ReplacementPackage ParsePackage(string root, string sensitive, string file, bool isSensitive,
-            HashSet<string> verified, List<string> errors, Dictionary<string, object> json)
+            HashSet<string> verified, ReplacementCatalog result, Dictionary<string, object> json)
         {
             string id = ResourceManifest.ReadHeader(json, out var items);
             var package = new ReplacementPackage
@@ -144,8 +155,9 @@ namespace AICResourceKit.Patches.ReplaceTexture
             };
             string directory = Path.GetDirectoryName(file);
             var identities = new HashSet<string>(StringComparer.Ordinal);
-            foreach (object item in items)
+            for (int index = 0; index < items.Count; index++)
             {
+                object item = items[index];
                 Dictionary<string, object> targetJson;
                 string identity;
                 try
@@ -156,7 +168,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 catch (Exception ex)
                 {
                     package.HasUnidentifiedTargetErrors = true;
-                    errors.Add(file + " [invalid target]: " + ex.Message);
+                    result.Errors.Add(file + " [target " + index + "]: " + ex.Message);
+                    result.Issues.Add(ReplacementIssue.Create(file, id, index, null, ex));
                     continue;
                 }
 
@@ -167,12 +180,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 {
                     var target = ParseTarget(root, sensitive, directory, package.Id, isSensitive, targetJson, verified);
                     target.Owner = package;
+                    target.TargetIndex = index;
                     package.Targets.Add(target);
                 }
                 catch (Exception ex)
                 {
                     package.InvalidTargetIdentities.Add(identity);
-                    errors.Add(file + " [" + identity + "]: " + ex.Message);
+                    result.Errors.Add(file + " [target " + index + ", " + identity + "]: " + ex.Message);
+                    result.Issues.Add(ReplacementIssue.Create(file, id, index, identity, ex));
                 }
             }
             return package;
@@ -196,7 +211,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 {
                     target.AtlasPath = path;
                     if (target.Type != "spine-assets" && PortraitCatalog.ReadAtlas(ReplacementResourceIO.ReadText(path)).Pages.Count != 1)
-                        throw new InvalidDataException("Spine replacement atlas must contain exactly one page.");
+                        throw new InvalidDataException("Spine replacement atlas must contain exactly one page: " + path);
                 }
                 else
                 {
@@ -220,9 +235,9 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private static void ValidatePngHeader(string path)
         {
             byte[] header = ReplacementResourceIO.ReadPrefix(path, 33);
-            if (header.Length != 33) throw new InvalidDataException("Expected PNG with IHDR.");
+            if (header.Length != 33) throw new InvalidDataException("Expected PNG with IHDR: " + path);
             byte[] signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
-            if (!header.Take(8).SequenceEqual(signature)) throw new InvalidDataException("Expected PNG with IHDR.");
+            if (!header.Take(8).SequenceEqual(signature)) throw new InvalidDataException("Expected PNG with IHDR: " + path);
         }
 
         private static IEnumerable<string> Enumerate(string directory)

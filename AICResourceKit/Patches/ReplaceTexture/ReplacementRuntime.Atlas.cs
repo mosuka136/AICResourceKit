@@ -223,6 +223,9 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     throw new InvalidDataException("The atlas texture is also targeted by an MTI image pack; enable one addressing route.");
                 if (surface.Applied != null && surface.Applied.Any(edit => !CanRetain(new[] { edit.Target.Owner }, edit.Target.Identity)))
                     RestoreAtlasSurface(surface);
+                if (HasPxlEdits(surface.Texture))
+                    throw new InvalidDataException("The same texture is targeted by both PXL and atlas packs; enable one addressing route.");
+                if (scan != null && !firstAccess) return;
                 AtlasPixels[] prepared;
                 if (firstAccess)
                 {

@@ -87,7 +87,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             string identity = SpineIdentity(texture.key, key);
             var layers = ActiveLayers(identity);
             SpineBundle candidate = null;
-            bool damaged = HasInvalidLayer(identity) || (old != null && HasUnidentifiedErrors(old.Sources));
+            bool damaged = HasInvalidLayer(identity) || (old != null && HasUnidentifiedErrors(old.Sources, identity));
             if (damaged)
             {
                 CancelSpinePreparation(state);
@@ -103,6 +103,11 @@ namespace AICResourceKit.Patches.ReplaceTexture
             {
                 try
                 {
+                    if (scan != null)
+                    {
+                        if (old != null && !CanRetain(old.Sources, identity)) return InstallSpine(texture, state, key, null);
+                        return false;
+                    }
                     if (state.Pending == null)
                     {
                         texture.MtiText.addLoadKey("_SV");

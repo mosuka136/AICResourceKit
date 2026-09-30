@@ -75,10 +75,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (scan != null && scan.TryTake(out var scanned, out var error))
             {
                 scan = null;
-                if (error != null) BLog.Error("Replacement discovery failed; keeping the previous catalog.", error);
+                if (error != null)
+                {
+                    scanError = error.Message;
+                    BLog.Error("Replacement discovery failed; keeping the previous catalog.", error);
+                }
                 else AcceptCatalog(scanned);
             }
-            if (selectionDelay.Ready(Settings, Time.unscaledTime, !Enabled)) ApplySelection(false);
+            if (selectionDelay.Ready(Settings, Time.unscaledTime, selection.RevokedBy(EnabledIds(), Enabled, sensitive))) ApplySelection(false);
             if (selectionDelay.Waiting) return;
             RetryMtiRecords();
             RefreshResourceRecords();
@@ -91,6 +95,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void AcceptCatalog(ReplacementCatalog scanned)
         {
+            scanError = null;
             SyncPackRows(scanned);
             catalog = scanned;
             DiscoverDiagnosticTargets();
@@ -116,6 +121,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
         {
             if (!initialized || stopped) return;
             scan?.Dispose();
+            scanError = null;
+            CancelPendingReplacements();
             string root = PatchInfo.ReplaceImagePath, sensitive = PatchInfo.ReplaceSensitiveImagePath;
             bool allow = ConfigManager.EnableSensitivities?.Value == true;
             scan = new ReplacementWork<ReplacementCatalog>(token => ReplacementCatalog.Discover(root, sensitive, allow, token));
@@ -127,6 +134,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             selection = new ReplacementSelection(catalog, EnabledIds(), Enabled, ConfigManager.EnableSensitivities?.Value == true);
             selectionDelay.Reset(Settings);
             revision++;
+            if (force) statusFailures.Clear();
             InvalidateSpineSelection(previous, force);
             InvalidateMtiSelection(previous, force);
             InvalidateResourceSelection(previous, force);
@@ -254,12 +262,12 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 PatchInfo.ReplaceSensitiveImagePath, ConfigManager.EnableSensitivities?.Value == true);
         }
 
-        private static bool HasUnidentifiedErrors(IEnumerable<ReplacementPackage> packages)
+        private static bool HasUnidentifiedErrors(IEnumerable<ReplacementPackage> packages, string identity)
         {
             foreach (var source in packages.Where(package => package != null))
             {
                 var current = catalog.Packages.FirstOrDefault(package => package.Id == source.Id);
-                if (current != null && current.HasUnidentifiedTargetErrors) return true;
+                if (current != null && current.HasUnidentifiedErrorFor(identity)) return true;
             }
             return false;
         }

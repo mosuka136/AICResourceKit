@@ -3,6 +3,7 @@ using AICResourceKit.BPatchGUI;
 using AICResourceKit.Patches.ReplaceTexture;
 using System;
 using UnityModBase.HTranslatorSpace;
+using UnityModBase.HControlSpace;
 
 namespace AICResourceKit.BControlManager
 {
@@ -13,6 +14,33 @@ namespace AICResourceKit.BControlManager
             try
             {
                 BService.Control.CreateTable("Resources", new Translator("资源调查", "Resources"));
+                Bind("Resources", "StatusFilter", () => ReplacementRuntime.StatusFilter,
+                    value => ReplacementRuntime.StatusFilter = value ?? "",
+                    new Translator("状态筛选", "Status Filter"),
+                    new Translator("按包 ID、目标或错误信息筛选显示；不改变包选择。", "Filter results by pack, target or error without changing selection."));
+                BService.Control.Bind("Resources", "LoadResults", ReplacementRuntime.ResourceStatusLines,
+                    ControlUpdatePolicy.WhenVisibleEverySecond,
+                    new Translator("加载结果", "Loading Results"),
+                    new Translator("当前资源状态，每秒更新。此处的显示值不控制资源包开关。", "Current resource state, updated every second. Displayed values do not change pack switches."));
+                BindPulse("Resources", "RefreshResources", value => { if (value) ReplacementRuntime.Reload(); },
+                    new Translator("刷新资源", "Refresh Resources"),
+                    new Translator("与 Ctrl+T 相同：重新扫描并更新资源，取消旧的准备任务。", "Same as Ctrl+T: rescan resources and discard outdated preparation work."));
+                BindPulse("Resources", "ExportResourceStatus", value =>
+                {
+                    if (!value) return;
+                    try
+                    {
+                        ReplacementRuntime.ExportResourceStatus();
+                        NoticeGUI.Show(new Translator("资源状态已导出至 logs/resource-status.json。",
+                            "Resource status exported to logs/resource-status.json."), 5f);
+                    }
+                    catch (Exception ex)
+                    {
+                        BLog.Error("Resource status export failed.", ex);
+                        NoticeGUI.Show(new Translator("资源状态导出失败，详见插件日志。", "Resource status export failed; see plugin log."), 5f);
+                    }
+                }, new Translator("导出资源状态", "Export Resource Status"),
+                    new Translator("导出完整的当前状态和包/目标/文件错误，无需开启诊断。", "Export all current states and pack/target/file errors without enabling diagnostics."));
                 BindPulse("Resources", "InspectMpcc", value =>
                 {
                     if (!value) return;

@@ -41,13 +41,14 @@
 | `Texture.ResourceDiagnosticFilter` | 空字符串 | 按目标筛选诊断，多条件使用分号分隔 |
 | `Hotkey.FlushTextureHotkey` | `Ctrl+T` | 重新扫描资源文件 |
 
-启用、停用资源包和调整排序会自动应用；编辑、新增或删除文件后使用刷新热键。清单仍存在但暂时解析失败时，配置行会保留，具体错误见日志。
+启用、停用资源包和调整排序会自动应用；编辑、新增或删除文件后使用刷新热键。停用包、关闭替换或撤销敏感授权在下一次主线程配置检查时恢复被撤销的资源；启用和排序连续调整合并约 0.15 秒后生效。清单仍存在但暂时解析失败时，配置行会保留，可在“控制界面 → 资源调查”查看错误。
 
 | 内容 | 游戏目录中的位置 |
 | --- | --- |
 | 普通资源包 | `BepInEx/plugins/AICResourceKit/ReplaceTexture/` |
 | 敏感资源包 | `BepInEx/plugins/AICResourceKit/ReplaceTexture/Sensitive/` |
 | 插件日志 | `BepInEx/plugins/AICResourceKit/logs/` |
+| 当前状态报告 | `BepInEx/plugins/AICResourceKit/logs/resource-status.json` |
 | 诊断报告 | `BepInEx/plugins/AICResourceKit/logs/resource-diagnostics.json` |
 
 ### 1.3 立绘控制与资源预览
@@ -67,6 +68,14 @@
 在 AICResourceKit **控制界面 → 资源调查**中触发“导出 MPCC 报告”，读取 `BepInEx/plugins/AICResourceKit/logs/mpcc-inspection.json`。工具通过游戏原生读取器列出附带 MPCC 文件的角色键、部件、调色操作和已加载 PXL 页的地址，不应用预设、不改启用配置。无需开启持续诊断。
 
 尚未加载的角色不会凭名称生成图片地址；正常进入相关场景后可再次导出。五个文件的调查结论、报告字段和可复用的 PXL 示例见[MPCC 调查说明](mpcc-inspection.md)。
+
+### 1.5 查看加载结果与刷新
+
+进入 AICResourceKit **控制界面 → 资源调查**。加载结果每秒更新；“状态筛选”可输入包 ID、目标键或错误文本，只筛选显示，不改变资源包开关。“刷新资源”与配置的刷新热键调用同一入口；默认热键为 `Ctrl+T`。操作和报告字段见[资源状态说明](resource-status.md)。
+
+修改 PNG、atlas、JSON 或清单后刷新，等待“准备中”结束，再到对应场景查看。“未加载”表示尚未观察到该目标的消费者，不能据此判断路径正确或错误。普通图片、PXL、图集和剧情 Spine 不触发主立绘姿态预览。
+
+需要保存当前结果时触发“导出资源状态”。报告包含全部目标及包/文件错误，不受状态筛选影响，也不要求开启持续诊断。先看状态报告定位具体包与目标；需要追踪加载入口和操作历史时，再使用[资源加载诊断](diagnostics.md)。
 
 ## 2. 创建并启用一个 v2 资源包
 

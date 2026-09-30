@@ -118,7 +118,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (record.Original == null) record.Original = image.Tx;
             var layer = Enabled ? selection.Texture("mti", record.AssetKey, record.ImageKey, null) : null;
             if (HasInvalidTextureLayer("mti", record.AssetKey, record.ImageKey, null)
-                || (record.Source != null && HasUnidentifiedErrors(new[] { record.Source })))
+                || (record.Source != null && HasUnidentifiedErrors(new[] { record.Source }, record.SourceIdentity)))
             {
                 record.Pending?.Dispose();
                 record.Pending = null;
@@ -144,6 +144,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             try
             {
                 if (record.Replacement != null && !CanRetain(new[] { record.Source }, record.SourceIdentity)) Restore(record);
+                if (scan != null && !firstAccess) return;
                 byte[] bytes;
                 if (firstAccess && record.Replacement == null)
                 {

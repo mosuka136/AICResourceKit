@@ -83,6 +83,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal static void Record(ReplacementDiagnosticTarget target, string stage, string entry,
             string outcome, string reason = null, Dictionary<string, object> details = null)
         {
+            ReplacementRuntime.TrackResourceResult(target?.RuntimeIdentity, stage, reason);
             if (session == null) return;
             try { session.Record(target, stage, entry, outcome, Sanitize(reason), details); }
             catch (Exception ex) { BLog.Error("Resource diagnostic observation failed.", ex); }
@@ -112,19 +113,19 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static void Spine(string key, string jsonKey, string stage, string outcome, string reason = null)
         {
-            if (Enabled) Record(ReplacementDiagnosticTarget.Spine(key, jsonKey), stage,
+            Record(ReplacementDiagnosticTarget.Spine(key, jsonKey), stage,
                 "BetobetoManager.SvTexture.prepareAtlasAssets / ReplacementRuntime", outcome, reason);
         }
 
         internal static void Mti(string assetKey, string imageKey, string stage, string outcome, string reason = null)
         {
-            if (Enabled) Record(ReplacementDiagnosticTarget.Mti(assetKey, imageKey), stage,
+            Record(ReplacementDiagnosticTarget.Mti(assetKey, imageKey), stage,
                 "MTI.LoadImage / LoadContainerOneImage / ReplacementRuntime", outcome, reason);
         }
 
         internal static void Resource(string path, string objectType, string stage, string outcome, string reason = null)
         {
-            if (Enabled) Record(ReplacementDiagnosticTarget.Resources(path, objectType), stage,
+            Record(ReplacementDiagnosticTarget.Resources(path, objectType), stage,
                 "Resources.Load / ReplacementRuntime", outcome, reason);
         }
 

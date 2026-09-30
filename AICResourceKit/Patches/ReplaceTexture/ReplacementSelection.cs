@@ -66,6 +66,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
             && address.MatchesSpine(target.SpineAddress)
             && (target.ImagePath != null || target.PagePaths.Count > 0 || target.AtlasPath != null));
 
+        // 取消启用和撤销敏感授权不经过排序/启用操作的短暂合并等待。
+        internal bool RevokedBy(IEnumerable<string> ids, bool enabled, bool allowSensitive)
+        {
+            if (!enabled || (AllowSensitive && !allowSensitive)) return true;
+            var current = new HashSet<string>(ids ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
+            return EnabledIds.Any(id => !current.Contains(id));
+        }
+
         internal bool Invalid(string identity) => invalid.Contains(identity);
         internal List<ReplacementTarget> NewlyEnabledPortraits(ReplacementSelection previous) => targets
             .Where(target => target.Type == "spine" && !Invalid(target.Identity)

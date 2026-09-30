@@ -9,7 +9,7 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 1. 安装 BepInEx 5 和 UnityModBase，将 `AICResourceKit.dll` 放入游戏的 `BepInEx/plugins/AICResourceKit/`。
 2. 启动游戏，在 UnityModBase 配置界面选择 AICResourceKit。总开关 `EnableMod` 需要在启动时开启；启动时关闭过它，应开启后重启游戏。
 3. 将资源包放入 `BepInEx/plugins/AICResourceKit/ReplaceTexture/`，开启“启用资源替换”，在资源包列表中启用需要的包。列表越靠后的包优先。
-4. 修改资源文件后按默认热键 `Ctrl+T` 重新扫描。
+4. 修改资源文件后按默认热键 `Ctrl+T` 或在“控制界面 → 资源调查”触发“刷新资源”。同页可查看加载结果、导出当前状态。
 
 配置文件为 `BepInEx/plugins/AICResourceKit/AICResourceKit.cfg`。已有 BetterExperience 资源包可按[迁移说明](docs/migration.md)转入。
 
@@ -22,6 +22,7 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 | PXL 内嵌图片、外部页与打包页替换 | [PXL 使用说明](docs/pxl-replacement.md) |
 | 替换剧情 PICT 图片或独立图集页 | [图集替换说明](docs/atlas-replacement.md) |
 | 调查 MPCC 调色文件及其 PXL 图片依赖 | [MPCC 调查说明](docs/mpcc-inspection.md) |
+| 查看加载结果、刷新与排查包/文件错误 | [资源状态说明](docs/resource-status.md) |
 | 确认实际加载入口、读取诊断报告 | [资源加载诊断](docs/diagnostics.md) |
 | 查字段语义、身份匹配、Schema 和地址草案 | [资源契约](docs/resource-contract.md) |
 | 准备引用、构建、修改代码和维护文档 | [开发说明](docs/development.md) |

@@ -40,6 +40,7 @@ python tools/validate-contract-schema.py
 | --- | --- |
 | `AICResourceKit/Contracts/` | 无 Unity 依赖的 v2 字段语义、目标身份、声明依赖及地址草案；由插件和工具链接编译 |
 | `ReplacementCatalog` | 扫描清单、解析单个包、检查文件依赖和同步配置行 |
+| `ReplacementStatus` | 无 Unity 依赖的状态判定与清单问题分类 |
 | `ReplacementSelection` | 在目录快照上处理包顺序、目标选择与授权，不读取磁盘 |
 | `ReplacementPreparation` / `ReplacementWork` | 后台读取与合成、取消和结果交接，不创建 Unity 对象 |
 | `ReplacementRuntime` | 主线程调度、目录接受和选择变更；具体资源处理见下表 |
@@ -62,6 +63,8 @@ python tools/validate-contract-schema.py
 | 文件 | 维护范围 |
 | --- | --- |
 | [ReplacementRuntime.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.cs) | 初始化、目录刷新、选择变更及公共授权判断 |
+| [ReplacementRuntime.Lifecycle.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Lifecycle.cs) | 统一取消准备任务及跨 PXL/图集共享纹理冲突判断 |
+| [ReplacementRuntime.Status.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Status.cs) | 当前消费者计数、失败原因、控制页结果及手动 JSON 导出 |
 | [ReplacementRuntime.Spine.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Spine.cs) | 主立绘准备、安装、释放及状态 |
 | [ReplacementRuntime.SpineAssets.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineAssets.cs) | 创建 Spine Unity 资源及对象所有权 |
 | [ReplacementRuntime.Viewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Viewers.cs) | 消费者重绑、动画与皮肤延续、显示参数 |
@@ -91,6 +94,8 @@ python tools/validate-contract-schema.py
 - Sprite 使用原整张纹理与原网格。打包、旋转或 UV 不能按原 rect/pivot/PPU 重建时明确拒绝，不能退化为看似成功的 FullRect 图片。
 - 清单先识别目标身份，再检查内容。身份重复使整个包无效；单个目标的字段或依赖出错可隔离，并保留其他有效目标。
 - 保留 v2 身份、包优先级、MTI null/空字符串语义和 Sensitive 开关行为。修改字段规则时同步更新 Schema、向量与契约说明。
+- 手动刷新先取消全部旧准备任务，再接受后台目录并重新准备。扫描期间保留仍获授权的已应用资源；首载同步路径继续使用已接受目录，以保证游戏缓存到正确对象。停用和撤销授权不等待新候选；普通启用和排序仍合并连续配置变化。
+- 当前状态不依赖诊断会话：从各入口的注册表读取已加载/已应用/准备数量，只缓存最近失败原因。重新扫描清空旧失败；无关的配置变更不得隐藏没有重新准备的失败。图集与 PXL 同时选中同一物理纹理时，两路拒绝并恢复原图，避免互相保存对方的替换像素。
 - 关闭替换后恢复原对象、释放自建 Unity 对象属于正常生命周期。不要扩展成磁盘备份、快照或复杂回滚系统。
 
 ## 测试与日常修改

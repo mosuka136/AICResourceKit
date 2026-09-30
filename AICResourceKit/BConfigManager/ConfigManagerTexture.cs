@@ -30,8 +30,8 @@ namespace AICResourceKit.BConfigManager
                     SectionTexture, nameof(EnableResourceReplacement), false,
                     new Translator(chinese: "启用资源替换", english: "Enable Resource Replacement"),
                     new Translator(
-                        chinese: "扫描 ReplaceTexture 中的 v2 .replacement.json 资源包。资源包可按列表顺序分层替换普通图片、Spine 图集、骨骼、插槽、皮肤、附件、约束、事件和动画；靠后的包优先。",
-                        english: "Scan v2 .replacement.json packs in ReplaceTexture. Packs layer in list order and can replace regular images, Spine atlases, bones, slots, skins, attachments, constraints, events, and animations; later packs have higher priority."));
+                        chinese: "启用 ReplaceTexture 中选中的 v2 资源包，支持图片、PXL、主立绘、剧情 Spine 与独立图集。靠后的包优先；关闭后恢复原资源。当前加载结果可在控制界面的资源调查页查看。",
+                        english: "Enable selected v2 packs in ReplaceTexture for images, PXL, portraits, ordinary Spine and independent atlases. Later packs take priority; disabling restores originals. View current loading results on the Resources control page."));
                 EnableResourceDiagnostics = Config.Bind(
                     SectionTexture, nameof(EnableResourceDiagnostics), false,
                     new Translator(chinese: "资源加载诊断", english: "Resource Loading Diagnostics"),
@@ -58,8 +58,8 @@ namespace AICResourceKit.BConfigManager
                     SectionTexture, nameof(EnabledReplacementPacks), new List<(string, bool)>(),
                     new Translator(chinese: "资源替换包列表", english: "Replacement Packs"),
                     new Translator(
-                        chinese: "每行一个资源包。启用包按当前行序组合，越靠后优先级越高；同一目标的多个包不会自动互斥。新启用立绘包加载完成后，会先预览对应姿态约 2 秒，再恢复。修改资源文件后使用刷新贴图热键。",
-                        english: "One replacement pack per row. Enabled packs compose in row order, with later rows taking priority; packs targeting the same resource remain enabled together. Once loaded, newly enabled portrait packs preview a matching pose for about 2 seconds, then restore the previous pose, lock and normal ordering. Use the texture refresh hotkey after editing resource files."));
+                        chinese: "每行一个资源包。启用包按当前行序组合，越靠后优先级越高；同一目标的多个包不会自动互斥。新启用立绘包加载完成后，会先预览对应姿态约 2 秒，再恢复。修改资源文件后使用刷新贴图热键或资源调查页的刷新按钮。停用包立即生效；新启用和排序操作合并短时间内的连续修改。",
+                        english: "One replacement pack per row. Enabled packs compose in row order, with later rows taking priority; packs targeting the same resource remain enabled together. Once loaded, newly enabled portrait packs preview a matching pose for about 2 seconds, then restore the previous pose, lock and normal ordering. Use the texture refresh hotkey or the Resources refresh button after editing files. Disabling a pack takes effect immediately; rapid enable/reorder edits are coalesced."));
             }
             catch (Exception ex)
             {

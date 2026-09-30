@@ -187,7 +187,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 if (selection.Invalid(identity)) throw new InvalidOperationException("Invalid Spine target; see catalog errors.");
                 if (state.Source.Data == null || state.Source.Atlas == null)
                     throw new InvalidOperationException("Original Spine assets have been released.");
-                if (!firstAccess && state.Pending != null && !state.Pending.IsCompleted) return;
+                if (state.Current != null && !CanRetain(state.Current.Sources, identity)) RestoreSpineViewer(viewer, state);
+                if (!firstAccess && (scan != null || (state.Pending != null && !state.Pending.IsCompleted))) return;
                 PreparedSpine prepared;
                 string originalJson = state.Source.Data.skeletonJSON.text, originalAtlas = state.Source.Atlas.atlasFile.text;
                 float scale = state.Source.Data.scale;
@@ -200,7 +201,6 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 }
                 else
                 {
-                    if (state.Current != null && !CanRetain(state.Current.Sources, identity)) RestoreSpineViewer(viewer, state);
                     if (state.Pending == null)
                     {
                         state.Pending = new ReplacementWork<PreparedSpine>(token => ReplacementPreparation.Spine(
@@ -296,6 +296,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void DescribeSpineViewer(ViewerSpineState state, string stage, string outcome, string reason = null)
         {
+            TrackResourceResult(state.Source.Address.Identity, stage, reason);
             if (!ReplacementDiagnosticRuntime.Enabled) return;
             ReplacementDiagnosticRuntime.Record(ReplacementDiagnosticTarget.SpineAssets(state.Source.Address), stage,
                 "SpineViewer / ReplacementRuntime", outcome, reason, new Dictionary<string, object>

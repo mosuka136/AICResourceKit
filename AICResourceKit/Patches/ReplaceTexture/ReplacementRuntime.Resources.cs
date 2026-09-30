@@ -90,7 +90,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (record.Original == null) { DisposeResource(record); record.Attempt = revision; return; }
             var layer = Enabled ? selection.Texture("resources", record.Path, null, record.ObjectType) : null;
             if (HasInvalidTextureLayer("resources", record.Path, null, record.ObjectType)
-                || (record.Source != null && HasUnidentifiedErrors(new[] { record.Source })))
+                || (record.Source != null && HasUnidentifiedErrors(new[] { record.Source }, record.SourceIdentity)))
             {
                 record.Pending?.Dispose();
                 record.Pending = null;
@@ -117,6 +117,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             try
             {
                 if (record.Source != null && !CanRetain(new[] { record.Source }, record.SourceIdentity)) RestoreResource(record);
+                if (scan != null && !firstAccess) return;
                 byte[] bytes;
                 if (firstAccess && record.Replacement == null)
                 {
