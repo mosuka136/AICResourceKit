@@ -1,0 +1,14 @@
+{
+    "formatVersion": 2,
+    "id": "aicresourcekit-title-checker-v1",
+    "name": "Title checker sample",
+    "targets": [
+        {
+            "type": "texture",
+            "loader": "mti",
+            "assetKey": "MTI_title",
+            "imageKey": "key_noel",
+            "image": "checker.png"
+        }
+    ]
+}

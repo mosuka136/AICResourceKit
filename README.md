@@ -13,6 +13,8 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 
 配置文件为 `BepInEx/plugins/AICResourceKit/AICResourceKit.cfg`。已有 BetterExperience 资源包可按[迁移说明](docs/migration.md)转入。
 
+第一阶段接口与独立样例见[交付说明](docs/phase-one-delivery.md)；当前插件版本为 **1.1.0**，视频替换暂缓。
+
 ## 正式文档
 
 | 任务 | 文档 |

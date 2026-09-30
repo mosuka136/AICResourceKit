@@ -13,10 +13,10 @@ namespace AICResourceKit
         public static readonly Translator UserName = new Translator("AIC资源替换", "AICResourceKit");
 
         public const string BepInPluginId = "com.buele.aicresourcekit";
-        public const string BepInPluginVersion = "1.0.0";
+        public const string BepInPluginVersion = Contracts.ResourceCapabilities.PluginVersion;
 
         public const string HarmonyPluginId = "com.buele.aicresourcekit";
-        public const string HarmonyPluginVersion = "1.0.0";
+        public const string HarmonyPluginVersion = BepInPluginVersion;
 
         public static readonly string PluginPath = Path.Combine(Paths.PluginPath, nameof(AICResourceKit));
 

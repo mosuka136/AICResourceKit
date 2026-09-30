@@ -12,7 +12,7 @@
 |---|---|---|
 | 主立绘 `SvTexture` / `SpineViewerNel` | 既有 v2 单页 Spine | 通用 `key + jsonKey`，没有四姿态白名单；37 组 JSON 已做原样合成；历史 JSON 的纹理/深度路径通过，逐场景画面未验收 |
 | `MTI.LoadContainerOneImage` | 既有 v2 主纹理 | PXL 省略 `image_key`，目标保持空值；`load_key` 是持有者标记 |
-| `MTI.LoadImage` | v2 直接图片替换 | 按容器和图片键匹配，更新 MImage 及缓存材质；ver030g 已验证 key_noel、difficulty 的首次加载与画面；刷新、关闭和释放仍待实机核对 |
+| `MTI.LoadImage` | v2 直接图片替换 | 按容器和图片键匹配，更新 MImage 及缓存材质；ver030g 已验证 key_noel、difficulty 的首次加载与画面；key_noel 的刷新、停用恢复和持有者释放已在 P09/P10 验证；difficulty 的完整生命周期仍待逐项核对 |
 | `Resources.Load` | v2 Texture2D / 未打包 Sprite | Sprite 保留原网格与 UV；打包/旋转布局拒绝。两个目录 Sprite 的实际消费入口仍未确认 |
 | PXL 内嵌、打包页和额外页 | v2 `loader: pxl` 图片与整页替换 | MTI 来源、原始 ID/I/P、外部槽位或打包页序号定位；共享纹理原位更新，逐页报告结果 |
 | 普通 `SpineViewer` / Fatal | v2 `type: spine-assets`，单页/多页 | 真实容器、atlas、JSON 定位；各查看器独立材质，使用[完整页映射](spine-viewer-replacement.md) |
@@ -123,7 +123,7 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 
 自动测试覆盖诊断筛选、聚合、导出、错误处理、方法签名和调查清单。构建环境、引用 DLL 与测试命令见[开发说明](development.md)。
 
-ver030g 已使用 `sakura-furisode-title-v1` 验证 `MTI_title/key_noel` 和 `MTI_title/difficulty`：两项均记录 `candidate-applied / mimage-texture-assigned`，标题和难度选择界面显示对应替换图片。该验证覆盖首次加载和画面，不包括刷新、关闭与释放。
+ver030g 已使用 `sakura-furisode-title-v1` 验证 `MTI_title/key_noel` 和 `MTI_title/difficulty`：两项均记录 `candidate-applied / mimage-texture-assigned`，标题和难度选择界面显示对应替换图片。该轮验证覆盖首次加载和画面；key_noel 的刷新、关闭和持有者释放随后由 P09/P10 补充，difficulty 的完整生命周期尚未逐项实测。
 
 ver030g 的 PXL 运行时验证覆盖 `PxlNoel/noel.pxls` 外部页、`PxlNoel/noel_bassrobe.pxls` 内嵌打包页、`MTI_mgm_ttr` 中的 `_icons_ttr.pxls` 和 `Pxl/_icons.pxls`。混合内嵌/外部页及额外页夹具验证了替换、刷新、停用恢复、延迟重绑、共享释放及单页错误隔离；同时检查原纹理引用、不可读和压缩纹理、mipmap、RenderTexture 与字体初始化。该检查基于实际 Unity 对象和像素，不替代全部动作、剧情及场景画面验收。
 
@@ -141,4 +141,8 @@ ver030g 的 MPCC 验证使用游戏原生读取器成功解析全部五个附带
 
 P09 在 ver030g 使用真实 `MTI_title/key_noel`，以及 Resources、共享 PXL 页、独立图集和双 SpineViewer 夹具验证混合包顺序与像素结果。连续三次刷新取消旧准备任务；阻塞后台准备期间停用高优先级包或撤销 Sensitive 授权，各入口均先恢复原资源，再应用公开候选。PXL/图集同纹理冲突、坏页、同包未知目标和缺失文件分别隔离，其他有效目标继续刷新。共享消费者释放、Spine 轨道与队列、Resources 卸载转交及字体初始化通过。
 
-上述检查关闭持续诊断，仍能读取当前失败原因、未加载/未授权状态、实际消费者数量，按包筛选并导出 `resource-status.json`。Debug 全部 391 项测试通过；这轮实机验证侧重对象和像素，不替代完整场景画面验收。资源调查页新控件的可视布局和手工点击尚待验收。
+上述检查关闭持续诊断，仍能读取当前失败原因、未加载/未授权状态、实际消费者数量，按包筛选并导出 `resource-status.json`。Debug 全部 391 项测试通过；这轮实机验证侧重对象和像素，不替代完整场景画面验收。资源调查页新控件的布局及实际点击已在 P10 补充，见下段。
+
+P10 在插件 1.1.0 / ver030g 验证独立 `title-checker` 明文包和 BEREENC 密文包：真实 `MTI_title/key_noel` 显示棋盘格，原生纹理尺寸与像素一致；刷新保留引用，关闭恢复原像素，结束后恢复原资源包配置。界面按样例 ID 筛选后只显示一个目标；刷新、资源状态导出和 MPCC 导出均经实际点击，筛选不裁剪导出的完整报告。导出状态中的编译能力为契约 1，持续诊断关闭时仍有效。
+
+本次 F1/F3 自动输入未触发框架界面，通过 UnityExplorer 调试面板展开控制页完成按钮检查；未把该过程记为热键验收通过。396 项 xUnit 测试和 52 个 Schema 向量通过，完整范围见[阶段交付记录](resource-replacement/phase-one-verification.json)。样例不能证明其他全部场景已验收。

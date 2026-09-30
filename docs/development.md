@@ -56,7 +56,9 @@ python tools/validate-contract-schema.py
 | `MpccFileHeader` / `MpccInspection` | 小型版本头检查、调用游戏原生解码器导出文件及部件报告，不应用调色 |
 | `ReplacementDiagnostic*` | 可关闭的观察器与报告，不改变目标匹配 |
 | `PortraitControl*` / `PortraitReplacementPreview` | 主界面立绘控制、预览及会话状态 |
-| `AICResourceKit.ResourceEncryptor/` | 命令行参数、严格包解析、依赖检查与加密导出 |
+| `ResourceCapabilities` | 插件版本、稳定契约版本与编译能力；工具和状态报告共用 |
+| `PackInventory` | 严格包解析、共享依赖去重、文件格式和路径检查，输出可移植的依赖清单 |
+| `PackEncryptor` / `Program` | 复用依赖清单导出密文；提供 inspect、capabilities、encrypt CLI |
 
 运行时文件位于 `AICResourceKit/Patches/ReplaceTexture/`，保留一个协调入口，用 `partial` 按职责组织现有共享状态：
 
@@ -105,6 +107,14 @@ python tools/validate-contract-schema.py
 保留正常流程、必要边界和失败提示的验证。修复缺陷时补充一个能够复现问题的用例；没有新行为的重构用现有覆盖确认兼容即可。避免重复用例、只断言“没有异常”的空测试和为罕见场景堆积框架。
 
 涉及 Unity 加载或显示的修改，自动测试之后还需使用一个目标包在游戏中检查加载、刷新、关闭和画面。尚未进行游戏验证时，明确记录这一限制，不以静态方法签名测试代替实际结果。
+
+## 版本与阶段交付
+
+插件版本和程序集版本统一维护在 `Contracts/ResourceCapabilities.cs`。可安装规则由 `ContractVersion` 声明，清单仍独立使用 v2。版本或能力变化时，从已构建工具重新生成 `docs/resource-replacement/capabilities.json`，保留 UTF-8/CRLF；`ResourceDeliveryTests` 检查插件、工具和签入文件一致。
+
+`ResourceDeliveryTests` 还覆盖混合类型、共享依赖、多页、历史 `.old` 身份、明文/密文往返和独立标题样例。沿用已有加密失败清理与往返检查，不新增备份或回滚框架。`inspect` 只是静态文件检查，不能称为游戏验证。
+
+维护[第一阶段交付](phase-one-delivery.md)及机器验证记录时，分开记录自动测试、真实游戏入口、原生对象夹具和自然场景画面。原始日志和游戏素材保留在本地，交付记录不复制机器绝对路径。
 
 ## 文档维护
 

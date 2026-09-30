@@ -1,6 +1,6 @@
-# 资源目标与清单契约（P02）
+# 资源目标与清单契约
 
-状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。PXL 子集已接入 v2 `loader: pxl`，普通 Spine 已接入 `type: spine-assets`，独立图集已接入 `type: atlas-region` / `atlas-page`；其他新地址草案仍只描述定位与校验规则。
+状态：插件 1.1.0 的可安装契约已定版，`contractVersion: 1`。可安装格式保持 v2，PXL 使用 `loader: pxl`，普通 Spine 使用 `type: spine-assets`，独立图集使用 `type: atlas-region` / `atlas-page`。视频未实现；独立 `ResourceAddressDraft` API 仍为草案，不属于稳定的可安装语义。交付范围见[第一阶段接口交付](phase-one-delivery.md)。
 
 资源包创建、校验命令及可运行的 C# API 示例见[资源契约使用说明](usage.md)。
 
@@ -16,6 +16,7 @@
 
 `AICResourceKit.Contracts` 的源文件由插件与加密工具共同编译。后续制作工具可以链接这些文件，或复用测试向量；不需要加载 Unity 才能解释清单字段。
 
+- `ResourceCapabilities.Describe()`：返回编译版本、契约版本、支持类型和限制；不读取运行时状态。CLI `capabilities` 与当前状态报告中的 `capabilities` 使用同一来源。
 - `ResourceManifest.Parse`：严格解析整个清单，返回包 ID、目标及显式依赖；无效目标或重复身份导致失败。
 - `ResourceManifest.ReadHeader`、`IdentityOf`、`ReadTarget`：运行时分步解析，便于保留可识别的失败目标并隔离其他目标。
 - `ResourceIdentity`：生成既有 v2 身份，提供 MTI 匹配谓词。
@@ -124,7 +125,7 @@ v2 目标的 `type` 和 `address.kind` 必须同时为 `atlas-region` 或同时�
 | `atlas-page` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `pageKey` | 原尺寸整页替换；已通过 v2 同名 type 接入 |
 | `pxl-image` | `source={loader:mti,assetKey,textKey}` + `imageId` + `imageId2` + `role=I/P` | 来源需在读取 PXL 文本资产处绑定到角色对象，不能用 external_png_header 的默认值猜测；已通过 `loader: pxl` 接入 |
 | `pxl-page` | 同一 PXL source + `storage=external,pageIndex`，或 `storage=packed,pageOrdinal,imageType` | 外部数组槽位与打包页序号不是同一标识；已通过 `loader: pxl` 接入 |
-| `video` | `assetKey` + `clipKey` | 已观察到的 MTI VideoClip 来源；P08 处理播放器与生命周期 |
+| `video` | `assetKey` + `clipKey` | 已观察到的 MTI VideoClip 来源；P08 暂缓，仅保留草案，不支持安装 |
 
 以上地址拒绝未声明字段和绝对路径。P07 已确认 MPCC 文件为调色预设，可显式调查文件并输出已加载的 PXL 依赖。常规解码器没有文件路径，name/chr_name 不足以定义二进制替换身份；草案继续拒绝 `kind=mpcc`。图片依赖使用已有 `loader=pxl`，见[MPCC 说明](mpcc-inspection.md)。来源不清楚的 Sprite 或 atlas 也不能仅从导出名称生成地址。
 

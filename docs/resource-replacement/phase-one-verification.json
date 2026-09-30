@@ -1,0 +1,172 @@
+{
+    "reportVersion": 1,
+    "evidenceKind": "phase-verification-summary",
+    "date": "2026-09-30",
+    "pluginVersion": "1.1.0",
+    "contractVersion": 1,
+    "gameBaseline": "ver030g",
+    "deliveryStatus": "implemented-scope-delivered-with-documented-verification-limits",
+    "phaseTwoStarted": false,
+    "automated": {
+        "xunit": {
+            "configuration": "Debug",
+            "passed": 396,
+            "failed": 0,
+            "skipped": 0
+        },
+        "schemaVectors": {
+            "passed": 52,
+            "failed": 0
+        },
+        "buildConfigurations": [
+            "Debug",
+            "Release"
+        ],
+        "knownBuildWarnings": [
+            "NU1702: net8.0 tests reference net472 plugin"
+        ]
+    },
+    "runtimeChecks": [
+        {
+            "area": "title-checker",
+            "pluginVersion": "1.1.0",
+            "evidence": "real-title-consumer-and-native-pixels",
+            "result": "passed",
+            "targets": [
+                "MTI_title/key_noel"
+            ],
+            "coverage": [
+                "standalone-plain-pack",
+                "BEREENC-pack",
+                "1280x1520-RGBA",
+                "later-pack-priority",
+                "refresh-keeps-texture-reference",
+                "disable-restores-original",
+                "title-checker-visible",
+                "current-status-includes-compiled-capabilities",
+                "original-settings-restored"
+            ],
+            "limits": [
+                "encrypted-load-checked-by-native-pixels",
+                "other-scenes-not-proven-by-this-sample"
+            ]
+        },
+        {
+            "area": "resource-controls",
+            "pluginVersion": "1.1.0",
+            "evidence": "actual-UI-clicks-and-exported-files",
+            "result": "passed-with-entry-workaround",
+            "coverage": [
+                "resource-tab-layout",
+                "pack-filter-reduces-display-to-one-target",
+                "refresh",
+                "full-status-export-despite-filter",
+                "MPCC-export",
+                "export-toast",
+                "continuous-diagnostics-disabled"
+            ],
+            "limits": [
+                "F1/F3-automated-input-did-not-open-framework-UI",
+                "control-window-opened-via-UnityExplorer-inspector",
+                "hotkey-cause-not-determined"
+            ]
+        },
+        {
+            "area": "shared-lifecycle-P09",
+            "pluginVersion": "1.0.0",
+            "evidence": "real-MTI-and-native-Unity-fixtures",
+            "result": "passed",
+            "coverage": [
+                "MTI-title",
+                "Resources-Texture2D",
+                "shared-PXL-page",
+                "independent-atlas",
+                "two-Spine-viewers",
+                "ordering",
+                "stale-task-cancellation",
+                "three-refreshes",
+                "immediate-disable-and-Sensitive-revocation",
+                "cross-route-conflict",
+                "invalid-page-isolation",
+                "shared-release",
+                "status-counts-and-errors",
+                "font-initialization"
+            ],
+            "limits": [
+                "native-fixtures-do-not-prove-every-natural-scene"
+            ]
+        },
+        {
+            "area": "P03-P07",
+            "evidence": "prior-game-validation-summarized-in-diagnostics",
+            "result": "passed-with-scope-limits",
+            "coverage": [
+                "key_noel-and-difficulty-first-load-and-visible-replacement",
+                "four-PXL-baseline-sources-and-mixed-page-fixtures",
+                "fatal_nusi-shared-atlas-and-two-page-fixtures",
+                "37-portrait-JSON-round-trips-and-stand_battle.old-texture-depth",
+                "three-PICT-drawing-paths-and-atlas-only-original-assets",
+                "five-native-MPCC-decodes-and-PXL-input-mapping"
+            ],
+            "details": "../diagnostics.md#验证范围",
+            "limits": [
+                "natural-scenes-and-full-visual-coverage-are-not-implied"
+            ]
+        }
+    ],
+    "deferred": [
+        {
+            "workPackage": "P08",
+            "capability": "video-replacement",
+            "status": "skipped",
+            "installable": false
+        }
+    ],
+    "unverified": [
+        {
+            "target": "wplmode_",
+            "reason": "actual-loading-parameters-not-confirmed"
+        },
+        {
+            "target": "mgm_bun.pxls.bytes.texture_0 Sprite",
+            "reason": "natural-Sprite-consumer-not-confirmed"
+        },
+        {
+            "target": "damage_backvoreenemy Sprite",
+            "reason": "natural-Sprite-consumer-not-confirmed"
+        },
+        {
+            "target": "damage_backvoreenemy atlas",
+            "reason": "explicit-native-load-passed-natural-scene-not-located"
+        },
+        {
+            "target": "MTI_title/difficulty",
+            "reason": "first-load-and-visual-passed-full-lifecycle-not-individually-validated"
+        },
+        {
+            "target": "noel_bassrobe.pxls",
+            "reason": "explicit-native-PXL-load-passed-natural-trigger-not-confirmed"
+        },
+        {
+            "target": "Resources multi-page and unpacked Sprite",
+            "reason": "fixture-or-contract-coverage-does-not-confirm-natural-game-addresses"
+        },
+        {
+            "target": "all-scenes",
+            "reason": "full-story-mask-camera-animation-dirt-and-preview-visual-coverage-not-performed"
+        },
+        {
+            "target": "F1/F3",
+            "reason": "automated-input-not-effective-framework-hotkeys-not-verified"
+        }
+    ],
+    "artifacts": {
+        "capabilities": "capabilities.json",
+        "schema": "resource-replacement.schema.json",
+        "vectors": "contract-vectors.json",
+        "sample": "../../examples/title-checker/README.md",
+        "handoff": "../phase-one-delivery.md"
+    },
+    "rawGameAssetsIncluded": false,
+    "privateRawLogsIncluded": false
+}

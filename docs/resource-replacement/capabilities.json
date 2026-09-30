@@ -1,0 +1,146 @@
+{
+  "reportVersion": 1,
+  "evidenceKind": "compiled-capabilities",
+  "pluginId": "com.buele.aicresourcekit",
+  "pluginVersion": "1.1.0",
+  "contractVersion": 1,
+  "contractStatus": "stable",
+  "targetGameBaseline": "ver030g",
+  "manifestVersions": [
+    2
+  ],
+  "encryption": {
+    "format": "BEREENC",
+    "versions": [
+      1
+    ],
+    "mixedPlaintext": true,
+    "changesManifestPaths": false
+  },
+  "identityComparison": "ordinal-case-sensitive",
+  "priority": "later-enabled-pack-wins-or-composes",
+  "dependencyFields": [
+    "image",
+    "pages[].image",
+    "atlas",
+    "spine.json"
+  ],
+  "features": [
+    {
+      "id": "texture-mti",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "single-image-and-direct-image",
+        "original-dimensions",
+        "legacy-null-wildcard-and-exact-empty-key"
+      ]
+    },
+    {
+      "id": "texture-resources",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "Texture2D",
+        "unpacked-Sprite",
+        "original-dimensions-and-geometry"
+      ]
+    },
+    {
+      "id": "texture-pxl",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "embedded-I-P",
+        "external-and-packed-pages",
+        "original-dimensions",
+        "shared-texture-conflicts-rejected"
+      ]
+    },
+    {
+      "id": "spine",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "Spine-4.1-JSON",
+        "single-page",
+        "sections-and-compatibility",
+        "portrait-preview"
+      ]
+    },
+    {
+      "id": "spine-assets",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "mti-or-resources",
+        "explicit-multiple-pages",
+        "per-viewer-materials",
+        "preserve-playback"
+      ]
+    },
+    {
+      "id": "atlas-region",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "mti-or-resources",
+        "original-full-page-PNG",
+        "copy-packed-rectangle-only",
+        "reject-overlapping-edits"
+      ]
+    },
+    {
+      "id": "atlas-page",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "mti-or-resources",
+        "original-dimensions",
+        "preserve-atlas-layout"
+      ]
+    },
+    {
+      "id": "mpcc-inspection",
+      "supported": true,
+      "installableTarget": false,
+      "scopeAndLimits": [
+        "native-preset-decoder",
+        "registered-PXL-address-mapping",
+        "no-preset-application-or-render-texture-rebuild"
+      ]
+    },
+    {
+      "id": "video",
+      "supported": false,
+      "installableTarget": false,
+      "scopeAndLimits": [
+        "deferred",
+        "observer-and-address-draft-only"
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "file": "resource-status.json",
+      "reportVersion": 1,
+      "evidenceKind": "current-resource-state"
+    },
+    {
+      "file": "resource-diagnostics.json",
+      "reportVersion": 1,
+      "evidenceKind": "runtime-observation"
+    },
+    {
+      "file": "mpcc-inspection.json",
+      "reportVersion": 1,
+      "origin": "explicit-inspection"
+    },
+    {
+      "file": "pack-inventory",
+      "reportVersion": 1,
+      "evidenceKind": "validated-pack-dependencies"
+    }
+  ],
+  "runtimeValidation": "not-performed-by-this-report"
+}

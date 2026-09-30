@@ -1,6 +1,4 @@
-using AICResourceKit.Contracts;
 using AICResourceKit.Patches.ReplaceTexture;
-using System.Security.Cryptography;
 
 namespace AICResourceKit.ResourceEncryptor
 {
@@ -19,7 +17,7 @@ namespace AICResourceKit.ResourceEncryptor
             string parent = Path.GetDirectoryName(output);
             if (!Directory.Exists(parent)) throw new DirectoryNotFoundException("Output parent directory does not exist: " + parent);
 
-            var sources = Collect(input);
+            var sources = PackInventory.Read(input).Files;
             // 暂存目录与最终目录在同一父目录中，所有文件回读一致后才发布。
             string staging = Path.Combine(parent, ".be-encrypt-" + Guid.NewGuid().ToString("N"));
             if (Directory.Exists(staging) || File.Exists(staging)) throw new IOException("Temporary output already exists.");
@@ -36,7 +34,7 @@ namespace AICResourceKit.ResourceEncryptor
                     using (var decoded = ReplacementResourceIO.OpenRead(path))
                     using (var encoded = new FileStream(destination, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
                         ReplacementResourceIO.Encrypt(decoded, encoded);
-                    if (!Hash(destination).SequenceEqual(source.Value))
+                    if (!PackInventory.Hash(destination).SequenceEqual(source.Value))
                         throw new InvalidDataException("Resource changed or encrypted output did not round-trip: " + relative);
                     progress?.Invoke(relative);
                 }
@@ -50,72 +48,6 @@ namespace AICResourceKit.ResourceEncryptor
             }
         }
 
-        private static Dictionary<string, byte[]> Collect(string root)
-        {
-            var files = Enumerate(root).Where(path => path.EndsWith(".replacement.json", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToList();
-            if (files.Count == 0) throw new InvalidDataException("No v2 .replacement.json manifests were found.");
-            var sources = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
-            var ids = new HashSet<string>(StringComparer.Ordinal);
-            string sensitive = Path.Combine(root, "Sensitive");
-            foreach (string file in files)
-            {
-                var manifest = ResourceManifest.Parse(ManifestJson.Parse(ReplacementResourceIO.ReadText(file)));
-                if (!ids.Add(manifest.Id)) throw new InvalidDataException("Duplicate replacement id: " + manifest.Id);
-                Add(sources, file);
-                foreach (var target in manifest.Targets)
-                    foreach (var dependency in target.Dependencies)
-                        AddDependency(root, sensitive, file, dependency.Path, dependency.Kind, sources);
-            }
-            return sources;
-        }
-
-        private static void AddDependency(string root, string sensitive, string manifest, string relative,
-            string kind, Dictionary<string, byte[]> sources)
-        {
-            string path = ReplacementResourcePaths.Resolve(root, Path.GetDirectoryName(manifest), relative);
-            if (ReplacementResourcePaths.Within(sensitive, path) != ReplacementResourcePaths.Within(sensitive, manifest))
-                throw new InvalidDataException("A package and all dependencies must stay in the same normal or Sensitive tree.");
-            if (!File.Exists(path)) throw new FileNotFoundException("Replacement resource was not found.", path);
-            if (kind == "image")
-            {
-                var header = ReplacementResourceIO.ReadPrefix(path, 33);
-                byte[] signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
-                if (header.Length < 33 || !header.Take(8).SequenceEqual(signature)
-                    || header[12] != 73 || header[13] != 72 || header[14] != 68 || header[15] != 82)
-                    throw new InvalidDataException("Expected PNG with IHDR: " + path);
-            }
-            else if (kind == "json") ManifestJson.Parse(ReplacementResourceIO.ReadText(path));
-            else if (string.IsNullOrWhiteSpace(ReplacementResourceIO.ReadText(path)))
-                throw new InvalidDataException("Empty atlas: " + path);
-            Add(sources, path);
-        }
-
-        private static void Add(Dictionary<string, byte[]> sources, string path)
-        {
-            if (!sources.ContainsKey(path)) sources.Add(path, Hash(path));
-        }
-
-        private static byte[] Hash(string path)
-        {
-            using (var stream = ReplacementResourceIO.OpenRead(path))
-            using (var sha = SHA256.Create()) return sha.ComputeHash(stream);
-        }
-
-        private static IEnumerable<string> Enumerate(string directory)
-        {
-            ReplacementResourcePaths.RejectLink(directory);
-            foreach (string path in Directory.EnumerateFileSystemEntries(directory))
-            {
-                ReplacementResourcePaths.RejectLink(path);
-                if (Directory.Exists(path))
-                {
-                    foreach (string child in Enumerate(path)) yield return child;
-                }
-                else yield return path;
-            }
-        }
-
         private static void RemoveStaging(string staging, string parent)
         {
             string full = Path.GetFullPath(staging);
@@ -124,7 +56,7 @@ namespace AICResourceKit.ResourceEncryptor
                 throw new IOException("Refusing to remove an unexpected temporary directory: " + full);
             ReplacementResourcePaths.CheckAncestors(full);
             // 删除前检查完整目录树，不跟随目录链接；这里只删除本次创建的暂存目录。
-            foreach (string path in Enumerate(full)) ReplacementResourcePaths.RejectLink(path);
+            foreach (string path in PackInventory.Enumerate(full)) ReplacementResourcePaths.RejectLink(path);
             Directory.Delete(full, true);
         }
     }

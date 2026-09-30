@@ -195,7 +195,7 @@ BepInEx/plugins/AICResourceKit/ReplaceTexture/
 
 `MTIOneImage` 继续由已有单图入口处理，保留第 2.3 节的空键规则，避免它内部的 `LoadImage` 再次应用同一个目标。PXL 内嵌和额外页使用独立的 [PXL 适配器](pxl-replacement.md)。
 
-`wplmode_` 虽存在于 `mti_title_wpl.dat`，其实际加载参数仍待确认，因此目前不提供该图片的可安装定位示例。ver030g 的两张标题图已验证首次加载与画面；修改资源后仍应检查刷新和关闭后的显示，自动测试不代替实机检查。
+`wplmode_` 虽存在于 `mti_title_wpl.dat`，其实际加载参数仍待确认，因此目前不提供该图片的可安装定位示例。ver030g 的两张标题图已验证首次加载与画面，key_noel 另有独立明文/密文样例的刷新与停用恢复验证。difficulty 的完整生命周期仍待逐项核对；自动测试不代替实机检查。
 
 ### 2.6 替换 Resources Sprite
 
@@ -295,7 +295,25 @@ Schema 不读取图片，也不判断目标是否实际存在。下面三类验�
 | 公共解析与依赖检查 | 身份重复、字段语义；进一步检查声明文件、路径和授权边界 |
 | 游戏运行 | 加载入口、候选应用、消费者刷新和画面效果 |
 
-### 3.3 可选：校验依赖并导出密文包
+### 3.3 检查依赖、能力与导出密文包
+
+只检查资源根目录，执行 `inspect`；命令不生成目录或修改输入，明文、密文和混合文件都可读取：
+
+```powershell
+dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEncryptor.csproj -c Debug -- inspect --input "D:/Assets/ReplaceTexture"
+```
+
+成功输出 JSON：`reportVersion: 1`、`evidenceKind: validated-pack-dependencies`、插件/契约版本、`manifests`、去重后的 `files` 与 `fileCount`。每个清单包含 ID、相对清单路径、Sensitive 标记；每个目标包含零起始索引、类型、运行时身份和依赖的 `kind/path/pageKey`。所有路径相对输入根目录，使用 `/`，不输出机器绝对目录。
+
+检查与加密共用严格解析和依赖枚举：包含 `image`、`pages[].image`、`atlas`、`spine.json`，共享文件只导出一次，不包含未被引用的工程文件。资源包与依赖必须同属普通目录树或 `Sensitive/`。PNG 检查文件头，JSON 检查可解析，atlas 检查非空；游戏中的尺寸、布局和显示仍需运行验证。错误指出清单及可识别的目标索引、依赖文件。
+
+查询当前工具编译对应的插件能力：
+
+```powershell
+dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEncryptor.csproj -c Debug -- capabilities
+```
+
+其 `evidenceKind` 为 `compiled-capabilities`，`runtimeValidation` 为 `not-performed-by-this-report`。如果需要将纯 JSON 重定向到文件，先构建，再使用 `dotnet AICResourceKit.ResourceEncryptor/bin/Debug/net8.0/AICResourceKit.ResourceEncryptor.dll capabilities` 或 `inspect`，避免首次 `dotnet run` 构建消息混入输出。
 
 需要发布加密包时执行：
 
@@ -305,7 +323,7 @@ dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEnc
 
 输入是完整资源根目录；有 Sensitive 内容时，它必须是该根目录下的子目录。输出目录必须尚不存在，父目录必须已存在，输入输出不能重叠。
 
-工具严格解析所有清单，检查声明依赖并生成密文，成功返回退出码 `0`。这条命令会生成文件，不是只读校验命令；当前工具没有独立的 `validate` 子命令。仅需检查字段语义时可使用下一节的示例。
+三个命令成功均返回退出码 `0`；包、依赖或读写错误返回 `1`，参数错误返回 `2`。`encrypt` 会生成文件，仅需检查时使用 `inspect`；工具没有 `validate` 子命令。下一节给出直接复用公共解析的 C# 示例。
 
 输出保留原文件名和相对目录，现有 BEREENC v1 包仍兼容。加密成功不能代替游戏中的 atlas、骨架合成和显示检查。加密后的清单不能直接交给上述 JSON Schema 脚本，应在加密前校验明文。
 

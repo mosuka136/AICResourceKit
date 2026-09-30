@@ -41,6 +41,7 @@
 | --- | --- |
 | `reportVersion` / `evidenceKind` | `1` / `current-resource-state` |
 | `pluginVersion` / `exportedUtc` | 插件版本、UTC 导出时间 |
+| `capabilities` | 当前 DLL 的编译能力表，与 CLI `capabilities` 同源；不代表本次运行已经验证这些能力 |
 | `selectionRevision` | 当前已接受选择的会话序号，不是清单版本 |
 | `replacementEnabled` / `allowSensitive` | 当前开关 |
 | `refreshing` / `selectionPending` | 是否正在扫描；配置是否还在等待合并应用 |

@@ -139,6 +139,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             }).ToArray();
             return new Dictionary<string, object>
             {
+                ["capabilities"] = ResourceCapabilities.Describe(),
                 ["reportVersion"] = 1, ["evidenceKind"] = "current-resource-state", ["pluginVersion"] = PatchInfo.BepInPluginVersion,
                 ["exportedUtc"] = DateTime.UtcNow.ToString("O"), ["selectionRevision"] = revision,
                 ["replacementEnabled"] = Enabled, ["allowSensitive"] = sensitive,

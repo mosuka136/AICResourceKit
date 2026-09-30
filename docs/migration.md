@@ -47,6 +47,6 @@ dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEnc
 
 ## 实现进度
 
-P01 的调查、默认关闭的诊断和测试已迁入；标题入口的实机采集与画面验证见[诊断说明](diagnostics.md#验证范围)。后续已完成 P02 契约草案，见 [资源目标与清单契约](resource-contract.md)；P03 已补充直接 MTI 入口和未打包 Sprite 处理，实机验证与待查入口状态见[资源工具计划](planning/noel-resource-tools.md)；P04 已增加 PXL 图片/整页替换，见 [PXL 说明](pxl-replacement.md)；P05 已增加普通 SpineViewer、剧情 JSON 和显式多页映射，见[剧情 Spine 说明](spine-viewer-replacement.md)；P06 已增加独立图集区域/整页与 PICT 图片入口，见[图集说明](atlas-replacement.md)，实际消费者验证边界见[诊断说明](diagnostics.md)；P07 已补充 MPCC 原生解码报告、五个文件调查与 PXL 依赖映射，见[MPCC 说明](mpcc-inspection.md)；P08 视频替换暂缓；P09 已统一刷新、授权撤销和加载结果，新增[资源状态说明](resource-status.md)，现有配置键与 v2 包保持兼容；P10 待确认。
+P01 的调查、默认关闭的诊断和测试已迁入；标题入口的实机采集与画面验证见[诊断说明](diagnostics.md#验证范围)。后续已完成 P02 公共契约，见 [资源目标与清单契约](resource-contract.md)；P03 已补充直接 MTI 入口和未打包 Sprite 处理，实机验证与待查入口状态见[资源工具计划](planning/noel-resource-tools.md)；P04 已增加 PXL 图片/整页替换，见 [PXL 说明](pxl-replacement.md)；P05 已增加普通 SpineViewer、剧情 JSON 和显式多页映射，见[剧情 Spine 说明](spine-viewer-replacement.md)；P06 已增加独立图集区域/整页与 PICT 图片入口，见[图集说明](atlas-replacement.md)，实际消费者验证边界见[诊断说明](diagnostics.md)；P07 已补充 MPCC 原生解码报告、五个文件调查与 PXL 依赖映射，见[MPCC 说明](mpcc-inspection.md)；P08 视频替换暂缓；P09 已统一刷新、授权撤销和加载结果，新增[资源状态说明](resource-status.md)，现有配置键与 v2 包保持兼容；P10 已完成统一依赖检查、独立样例和接口定版，见[第一阶段交付](phase-one-delivery.md)。
 
-后续实施顺序见[资源工具计划](planning/noel-resource-tools.md)。静态调查 JSON 保留采集时的 `pluginVersion=2.1.1`，它是历史证据元数据；新插件版本为 `1.0.0`。
+后续实施顺序见[资源工具计划](planning/noel-resource-tools.md)。静态调查 JSON 保留采集时的 `pluginVersion=2.1.1`，它是历史证据元数据；当前插件版本为 `1.1.0`，可安装契约版本为 `1`。

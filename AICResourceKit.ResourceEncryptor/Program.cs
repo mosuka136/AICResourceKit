@@ -1,10 +1,18 @@
+using AICResourceKit.Contracts;
+using System.Text.Json;
+
 namespace AICResourceKit.ResourceEncryptor
 {
     internal static class Program
     {
-        private const string Usage = "Usage: AICResourceKit.ResourceEncryptor encrypt --input <resource-root> --output <new-directory>";
+        private const string Usage = "Usage: AICResourceKit.ResourceEncryptor encrypt --input <resource-root> --output <new-directory>\n"
+            + "       AICResourceKit.ResourceEncryptor inspect --input <resource-root>\n"
+            + "       AICResourceKit.ResourceEncryptor capabilities";
 
         private static int Main(string[] args) => Run(args, Console.Out, Console.Error);
+
+        private static void WriteJson(TextWriter output, Dictionary<string, object> value) =>
+            output.WriteLine(JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }));
 
         internal static int Run(string[] args, TextWriter output, TextWriter error)
         {
@@ -12,6 +20,16 @@ namespace AICResourceKit.ResourceEncryptor
             {
                 output.WriteLine(Usage);
                 return 0;
+            }
+            if (args.Length == 1 && args[0] == "capabilities")
+            {
+                WriteJson(output, ResourceCapabilities.Describe());
+                return 0;
+            }
+            if (args.Length == 3 && args[0] == "inspect" && args[1] == "--input" && !string.IsNullOrWhiteSpace(args[2]))
+            {
+                try { WriteJson(output, PackInventory.Read(args[2]).Describe()); return 0; }
+                catch (Exception ex) { error.WriteLine("Inspection failed: " + ex.Message); return 1; }
             }
             if (args.Length != 5 || args[0] != "encrypt")
             {

@@ -30,8 +30,8 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 // 版本号请与 PatchInfo.BepInPluginVersion 保持一致。
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion(AICResourceKit.Contracts.ResourceCapabilities.AssemblyVersion)]
+[assembly: AssemblyFileVersion(AICResourceKit.Contracts.ResourceCapabilities.AssemblyVersion)]
 
 // 允许测试工程访问 internal 类型。
 [assembly: InternalsVisibleTo("AICResourceKit.Test")]
