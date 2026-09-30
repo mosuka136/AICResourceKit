@@ -156,6 +156,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             {
                 RestorePxlSurface(surface);
                 pxlSurfaces.Remove(surface.Texture);
+                ReleasePortraitPxl(surface.Texture);
             }
             else
             {

@@ -49,7 +49,7 @@ python tools/validate-contract-schema.py
 
 | 模块 | 职责 |
 | --- | --- |
-| `AICResourceKit/Contracts/` | 无 Unity 依赖的 v2 字段语义、目标身份、声明依赖及独立地址校验；由插件和工具链接编译 |
+| `AICResourceKit/Contracts/` | 无 Unity 依赖的 v2/v3 字段语义、目标身份、声明依赖及独立地址校验；由插件和工具链接编译 |
 | `ReplacementCatalog` | 扫描清单、解析单个包、检查文件依赖和同步配置行 |
 | `ReplacementStatus` | 无 Unity 依赖的状态判定与清单问题分类 |
 | `ReplacementSelection` | 在目录快照上处理包顺序、目标选择与授权，不读取磁盘 |
@@ -84,6 +84,7 @@ python tools/validate-contract-schema.py
 | [ReplacementRuntime.SpineViewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineViewers.cs) | 普通 SpineViewer 登记、候选应用、刷新和释放 |
 | [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | 单图容器、直接图片的缓存记录、应用及释放 |
 | [ReplacementRuntime.Pxl.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Pxl.cs) | 图片/页登记、共享纹理选择、准备与释放 |
+| [ReplacementRuntime.PortraitSelection.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.PortraitSelection.cs) | 主界面姿态/状态条件、Spine 原版轨道选择与 PXL 私有材质绑定 |
 | [ReplacementRuntime.Mpcc.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mpcc.cs) | 基于现有 PXL 登记输出 PCC 原色/遮罩输入映射，不控制调色缓存 |
 | [ReplacementRuntime.Atlas.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Atlas.cs) | 图集页登记、PICT 共享纹理合成、重叠隔离及释放 |
 | [ReplacementRuntime.Resources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Resources.cs) | Resources.Load 首载与刷新 |
@@ -121,7 +122,7 @@ python tools/validate-contract-schema.py
 
 ## 版本与能力维护
 
-插件版本和程序集版本统一维护在 `Contracts/ResourceCapabilities.cs`。可安装规则由 `ContractVersion` 声明，清单仍独立使用 v2。版本或能力变化时，从已构建工具重新生成 `docs/resource-replacement/capabilities.json`，保留 UTF-8/CRLF；`ResourceToolIntegrationTests` 检查插件、工具和签入文件一致。
+插件版本和程序集版本统一维护在 `Contracts/ResourceCapabilities.cs`。可安装规则由 `ContractVersion` 声明，清单独立支持 v2/v3；立绘选择条件仅允许用于 v3。版本或能力变化时，从已构建工具重新生成 `docs/resource-replacement/capabilities.json`，保留 UTF-8/CRLF；`ResourceToolIntegrationTests` 检查插件、工具和签入文件一致。
 
 `ResourceToolIntegrationTests` 还覆盖混合类型、共享依赖、多页、历史 `.old` 身份和明文/密文往返。沿用已有加密失败清理与往返检查，不新增备份或回滚框架。`inspect` 只是静态文件检查，不能称为游戏验证。
 

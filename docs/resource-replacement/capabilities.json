@@ -2,12 +2,13 @@
   "reportVersion": 1,
   "evidenceKind": "compiled-capabilities",
   "pluginId": "com.buele.aicresourcekit",
-  "pluginVersion": "1.1.0",
-  "contractVersion": 1,
+  "pluginVersion": "1.2.0",
+  "contractVersion": 2,
   "contractStatus": "stable",
   "targetGameBaseline": "ver030g",
   "manifestVersions": [
-    2
+    2,
+    3
   ],
   "encryption": {
     "format": "BEREENC",
@@ -66,6 +67,17 @@
         "single-page",
         "sections-and-compatibility",
         "portrait-preview"
+      ]
+    },
+    {
+      "id": "portrait-selection",
+      "supported": true,
+      "installableTarget": true,
+      "scopeAndLimits": [
+        "manifest-v3",
+        "main-UI-Spine-and-PXL",
+        "pose-base-animation-state-conditions",
+        "unselected-states-use-original"
       ]
     },
     {

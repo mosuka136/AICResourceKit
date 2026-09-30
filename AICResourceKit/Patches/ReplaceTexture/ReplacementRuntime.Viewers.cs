@@ -52,6 +52,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void ReplayViewerAnimation(SpineViewerNel viewer)
         {
+            if (ReplaySelectedPortrait(viewer)) return;
             string animation = viewer.getBaseAnimName();
             if (animation == null) return;
             string[] skins = CaptureSkinNames(viewer.GetSkeleton()?.SkinList);

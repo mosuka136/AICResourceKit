@@ -18,6 +18,7 @@ namespace AICResourceKit.Contracts
     public class ResourceTarget
     {
         public string Type;
+        public PortraitResourceSelection PortraitSelection;
         public string Loader;
         public PxlResourceAddress PxlAddress;
         public SpineResourceAddress SpineAddress;

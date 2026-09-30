@@ -1,6 +1,6 @@
 # 兼容性与支持范围
 
-适用插件为 AICResourceKit 1.1.0，公共可安装契约版本为 1，游戏基线为 ver030g。清单使用 v2，密文使用 BEREENC v1；既有包无需改写或重新加密。机器可读能力由 [ResourceCapabilities](../AICResourceKit/Contracts/ResourceCapabilities.cs) 提供，签入版本见 [capabilities.json](resource-replacement/capabilities.json)。
+适用插件为 AICResourceKit 1.2.0，公共可安装契约版本为 2，游戏基线为 ver030g。清单支持 v2/v3；带立绘选择条件时使用 v3，密文使用 BEREENC v1；既有包无需改写或重新加密。机器可读能力由 [ResourceCapabilities](../AICResourceKit/Contracts/ResourceCapabilities.cs) 提供，签入版本见 [capabilities.json](resource-replacement/capabilities.json)。
 
 ## 资源类型
 
@@ -10,6 +10,7 @@
 | Resources 图片与 Sprite | `texture / resources` | Texture2D、未打包 Sprite；保持纹理尺寸、网格与 UV；打包或旋转 Sprite 拒绝 |
 | PXL 图片和页面 | `texture / pxl` | I/P 内嵌图片、外部和打包页；保持原帧布局，共享纹理冲突拒绝 |
 | 主立绘 | `spine` | Spine 4.1、单页，支持分段组合、兼容映射和临时预览 |
+| 立绘条件替换 | v3 的 `spine` / `texture / pxl` + `portraitSelection` | 主界面姿态、Spine 基础动画和状态；未命中时原版回退；不覆盖地图 PXL 动作或剧情 Spine，见[选择性替换](portrait-selection.md) |
 | 普通剧情 Spine | `spine-assets` | MTI/Resources 来源，显式多页；独立查看器材质，保留播放状态 |
 | 独立图集和 PICT | `atlas-region / atlas-page` | 保持图集布局；区域输入为完整页 PNG，只写选中矩形；重叠拒绝 |
 | MPCC 调查 | 无替换类型 | 原生预设解码与已登记 PXL 输入映射；不应用预设、不重算调色纹理 |

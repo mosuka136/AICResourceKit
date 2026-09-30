@@ -18,7 +18,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         }
 
         private static bool HasPxlEdits(Texture texture) => pxlSurfaces.TryGetValue(texture, out var surface)
-            && surface.Bindings.Any(binding => selection.Layers(binding.Address.Identity).Count > 0);
+            && surface.Bindings.Any(binding => selection.Layers(binding.Address.Identity).Any(target => target.PortraitSelection == null));
 
         private static bool HasAtlasEdits(Texture texture) => texture is Texture2D image
             && atlasSurfaces.TryGetValue(image, out var surface) && SelectAtlasEdits(surface).Count > 0;

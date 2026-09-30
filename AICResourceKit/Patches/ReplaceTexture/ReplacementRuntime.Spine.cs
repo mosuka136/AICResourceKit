@@ -24,6 +24,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
             internal string ShownKey => Preview != null ? PreviewTarget.JsonKey : JsonKey;
             internal int Attempt = -1;
             internal string JsonKey;
+            internal bool Conditional;
+            internal List<ReplacementTarget> SelectedLayers = new List<ReplacementTarget>();
             internal string PendingKey;
             internal ReplacementWork<PreparedSpine> Pending;
             internal SkeletonDataAsset PendingOriginal;
@@ -76,16 +78,28 @@ namespace AICResourceKit.Patches.ReplaceTexture
             SpineViewerNel switching)
         {
             if (!spineStates.TryGetValue(texture, out var state)) spineStates.Add(texture, state = new SpineState());
+            var context = PortraitContextFor(texture, switching);
+            var layers = ActiveLayers(SpineIdentity(texture.key, key))
+                .Where(layer => layer.PortraitSelection == null || (context != null && context.Matches(layer))).ToList();
+            bool layersChanged = !state.SelectedLayers.SequenceEqual(layers);
+            bool restoreConditional = layersChanged && state.Conditional && state.Current != null;
+            if (layersChanged)
+            {
+                CancelSpinePreparation(state);
+                state.SelectedLayers = layers;
+                state.Conditional = layers.Any(layer => layer.PortraitSelection != null);
+                state.Attempt = -1;
+            }
             if (state.Pending != null && state.PendingKey != key) { CancelSpinePreparation(state); state.Attempt = -1; }
             if (state.Attempt == revision && state.JsonKey == key && state.Pending == null) return false;
             if (selectionDelay.Waiting && state.JsonKey == key) return false;
             if (material == null) return false;
-            var old = state.Current;
             var switchingAnimator = switching == null ? null : animator.GetValue(switching);
             if (state.Preview == null && LiveViewers().Any(viewer => viewer != switching && viewer.enabled && viewer.getSvTexture() == texture
                 && !ReferenceEquals(animator.GetValue(viewer), switchingAnimator))) return false;
+            bool restored = restoreConditional && InstallSpine(texture, state, key, null);
+            var old = state.Current;
             string identity = SpineIdentity(texture.key, key);
-            var layers = ActiveLayers(identity);
             SpineBundle candidate = null;
             bool damaged = HasInvalidLayer(identity) || (old != null && HasUnidentifiedErrors(old.Sources, identity));
             if (damaged)
@@ -96,7 +110,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 if (old != null && state.JsonKey == key && CanRetain(old.Sources, identity))
                 {
                     state.Attempt = revision;
-                    return false;
+                    return restored;
                 }
             }
             else if (layers.Count > 0)
@@ -105,8 +119,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 {
                     if (scan != null)
                     {
-                        if (old != null && !CanRetain(old.Sources, identity)) return InstallSpine(texture, state, key, null);
-                        return false;
+                        if (old != null && !CanRetain(old.Sources, identity)) return InstallSpine(texture, state, key, null) || restored;
+                        return restored;
                     }
                     if (state.Pending == null)
                     {
@@ -128,15 +142,21 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     }
                     if (!state.Pending.IsCompleted || !ClaimUpload())
                     {
-                        if (old == null) { state.JsonKey = key; return false; }
-                        if (state.JsonKey == key && CanRetain(old.Sources, identity)) return false;
-                        return InstallSpine(texture, state, key, null);
+                        if (old == null) { state.JsonKey = key; return restored; }
+                        if (state.JsonKey == key && CanRetain(old.Sources, identity)) return restored;
+                        return InstallSpine(texture, state, key, null) || restored;
                     }
                     var original = state.PendingOriginal;
                     state.Pending.TryTake(out var prepared, out var error);
                     CancelSpinePreparation(state);
                     if (error != null) throw error;
                     if (original == null) throw new InvalidOperationException("Original Spine data was released while preparing a replacement.");
+                    if (state.Conditional)
+                    {
+                        if (context != null) context.PreservePlayback = true;
+                        if (context == null || context.Collecting) throw new InvalidOperationException("Portrait state changed while preparing.");
+                        ValidatePortraitData(prepared.Composition.PreparedData, context.Animations, context.Skins);
+                    }
                     candidate = BuildSpineBundle(texture, layers, material, prepared, original);
                 }
                 catch (Exception ex)
@@ -149,7 +169,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                         && CanRetain(old.Sources, identity))
                     {
                         state.Attempt = revision;
-                        return false;
+                        return restored;
                     }
                 }
             }
@@ -159,10 +179,10 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 if (old != null && state.JsonKey == key && CanRetain(old.Sources, identity))
                 {
                     state.Attempt = revision;
-                    return false;
+                    return restored;
                 }
             }
-            return InstallSpine(texture, state, key, candidate);
+            return InstallSpine(texture, state, key, candidate) || restored;
         }
 
         private static bool InstallSpine(BetobetoManager.SvTexture texture, SpineState state, string key, SpineBundle candidate)

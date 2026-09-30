@@ -93,8 +93,10 @@ namespace AICResourceKit.Patches.ReplaceTexture
             ValidateBoneMappings(boneMap, finalBoneIndices);
             RewriteBoneReferences(result, finalBoneIndices, boneMap);
             RemapWeightedVertices(result, provenance, finalBoneIndices, boneMap);
-            AddAliases(original, result, "animations", animationMap, animationFallback);
-            AddSkinAliases(original, result, skinMap, skinFallback);
+            // 条件立绘只要求当前状态实际使用的动画和皮肤；未选中状态由完整原版资源显示。
+            var compatibilitySource = layers.Any(layer => layer.PortraitSelection != null) ? CloneObject(result) : original;
+            AddAliases(compatibilitySource, result, "animations", animationMap, animationFallback);
+            AddSkinAliases(compatibilitySource, result, skinMap, skinFallback);
             ValidateStructure(result, atlas);
 
             string json = PortraitJson.Serialize(result);

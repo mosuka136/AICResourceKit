@@ -39,6 +39,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
             changed.SetValue(state, true);
         }
 
+        internal static string[] AnimationNames(AnimationState state)
+        {
+            var entries = new HashSet<TrackEntry>();
+            if (state != null) foreach (var entry in state.Tracks) Visit(entry, entries);
+            return entries.Select(entry => entry.Animation?.Name).Where(name => name != null && name != "<empty>")
+                .Distinct(StringComparer.Ordinal).ToArray();
+        }
+
         private static void Visit(TrackEntry entry, HashSet<TrackEntry> visited)
         {
             if (entry == null || !visited.Add(entry)) return;

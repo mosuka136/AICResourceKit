@@ -9,6 +9,7 @@ namespace AICResourceKit.Contracts
     public sealed class ResourceManifest
     {
         public const int FormatVersion = 2;
+        public const int PortraitFormatVersion = 3;
         public string Id { get; private set; }
         public IReadOnlyList<ResourceTarget> Targets { get; private set; }
 
@@ -31,11 +32,14 @@ namespace AICResourceKit.Contracts
         /// <summary>运行时先读包头，再逐目标解析及隔离错误，不把坏目标当作成功。</summary>
         public static string ReadHeader(Dictionary<string, object> json, out List<object> targets)
         {
-            if (ContractValue.Integer(ContractValue.Get(json, "formatVersion")) != FormatVersion)
+            int version = ContractValue.Integer(ContractValue.Get(json, "formatVersion"));
+            if (version != FormatVersion && version != PortraitFormatVersion)
                 throw new InvalidDataException("Unsupported replacement manifest version.");
             string id = Required(json, "id");
             targets = ContractValue.Array(ContractValue.Get(json, "targets"));
             if (targets.Count == 0) throw new InvalidDataException("Replacement package has no targets.");
+            if (version == FormatVersion && targets.OfType<Dictionary<string, object>>().Any(target => target.ContainsKey("portraitSelection")))
+                throw new InvalidDataException("portraitSelection requires formatVersion 3; older plugins must reject this package.");
             return id;
         }
 
@@ -60,6 +64,12 @@ namespace AICResourceKit.Contracts
         internal static T ReadTarget<T>(Dictionary<string, object> json) where T : ResourceTarget, new()
         {
             var target = new T { Type = Required(json, "type").ToLowerInvariant() };
+            if (json.TryGetValue("portraitSelection", out object portrait))
+            {
+                if (target.Type != "spine" && !(target.Type == "texture" && ContractValue.String(json, "loader")?.ToLowerInvariant() == "pxl"))
+                    throw new InvalidDataException("portraitSelection supports portrait Spine and PXL textures only.");
+                target.PortraitSelection = PortraitResourceSelection.Parse(ContractValue.Object(portrait), target.Type == "spine");
+            }
             if (target.Type == "atlas-region" || target.Type == "atlas-page")
             {
                 if (json.Keys.Any(key => key != "type" && key != "address" && key != "image"))

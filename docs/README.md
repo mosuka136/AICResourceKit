@@ -8,6 +8,7 @@
 | --- | --- |
 | 安装、配置、最小资源包、启用与排序 | [使用说明](usage.md) |
 | 主立绘分段合成、兼容映射与显示参数 | [资源包参考](resource-packs.md) |
+| 只替换指定立绘姿态、动画和状态 | [选择性替换](portrait-selection.md) |
 | PXL 内嵌图片、外部页与打包页 | [PXL 替换](pxl-replacement.md) |
 | 普通 SpineViewer、共享 atlas 与多页 | [剧情 Spine 替换](spine-viewer-replacement.md) |
 | 独立区域、整页与 PICT 图片 | [图集替换](atlas-replacement.md) |

@@ -31,7 +31,7 @@ The detailed documentation is currently available in Chinese.
 | Building, architecture, testing, and version maintenance | [Development Guide](docs/development.md) |
 | Guides for specific resource types and diagnostic reports | [Documentation Index](docs/README.md) |
 
-Installable manifests use `formatVersion: 2`, and BEREENC v1 encrypted resources remain compatible. Spine assets use straight-alpha PNGs and Spine 4.1 JSON. Main character portraits support a single atlas page; Spine assets for story scenes support multiple pages with explicit page mappings. Video replacement is not supported. See [capabilities.json](docs/resource-replacement/capabilities.json) for the capabilities of the compiled version, and use actual loading reports to confirm game resource addresses.
+Installable manifests support `formatVersion: 2` and `3`. Version 3 adds [selective replacement](docs/portrait-selection.md) of main UI Spine/PXL portraits by pose or state, with base animation filtering for Spine. Unselected states use the original resources. BEREENC v1 encrypted resources remain compatible. Spine assets use straight-alpha PNGs and Spine 4.1 JSON. Main character portraits support a single atlas page; Spine assets for story scenes support multiple pages with explicit page mappings. Video replacement is not supported. See [capabilities.json](docs/resource-replacement/capabilities.json) for the capabilities of the compiled version, and use actual loading reports to confirm game resource addresses.
 
 ## Supported Versions
 

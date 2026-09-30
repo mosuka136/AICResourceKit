@@ -28,7 +28,7 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 | 构建、架构、测试与版本维护 | [开发说明](docs/development.md) |
 | 专项替换指南与报告说明 | [文档目录](docs/README.md) |
 
-可安装清单为 `formatVersion: 2`，兼容 BEREENC v1 密文。Spine 使用 straight-alpha PNG 和 Spine 4.1 JSON；主立绘支持单页，普通剧情 Spine 支持显式多页。视频替换不受支持。编译能力见[capabilities.json](docs/resource-replacement/capabilities.json)，具体游戏地址应以实际加载报告为准。
+可安装清单支持 `formatVersion: 2` 和 `3`；按姿态、动画和状态选择主界面 Spine/PXL 立绘时使用版本 3（见[选择性替换](docs/portrait-selection.md)），兼容 BEREENC v1 密文。Spine 使用 straight-alpha PNG 和 Spine 4.1 JSON；主立绘支持单页，普通剧情 Spine 支持显式多页。视频替换不受支持。编译能力见[capabilities.json](docs/resource-replacement/capabilities.json)，具体游戏地址应以实际加载报告为准。
 
 ## 支持的版本
 

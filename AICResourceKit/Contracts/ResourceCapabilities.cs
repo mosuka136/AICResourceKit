@@ -5,9 +5,9 @@ namespace AICResourceKit.Contracts
     /// <summary>编译版本声明的能力；不读取游戏状态，也不代替运行时验证。</summary>
     public static class ResourceCapabilities
     {
-        public const string PluginVersion = "1.1.0";
-        public const string AssemblyVersion = "1.1.0.0";
-        public const int ContractVersion = 1;
+        public const string PluginVersion = "1.2.0";
+        public const string AssemblyVersion = "1.2.0.0";
+        public const int ContractVersion = 2;
 
         public static Dictionary<string, object> Describe() => new Dictionary<string, object>
         {
@@ -18,7 +18,7 @@ namespace AICResourceKit.Contracts
             ["contractVersion"] = ContractVersion,
             ["contractStatus"] = "stable",
             ["targetGameBaseline"] = "ver030g",
-            ["manifestVersions"] = new[] { ResourceManifest.FormatVersion },
+            ["manifestVersions"] = new[] { ResourceManifest.FormatVersion, ResourceManifest.PortraitFormatVersion },
             ["encryption"] = new Dictionary<string, object>
             {
                 ["format"] = "BEREENC", ["versions"] = new[] { 1 },
@@ -33,6 +33,7 @@ namespace AICResourceKit.Contracts
                 Feature("texture-resources", true, true, "Texture2D", "unpacked-Sprite", "original-dimensions-and-geometry"),
                 Feature("texture-pxl", true, true, "embedded-I-P", "external-and-packed-pages", "original-dimensions", "shared-texture-conflicts-rejected"),
                 Feature("spine", true, true, "Spine-4.1-JSON", "single-page", "sections-and-compatibility", "portrait-preview"),
+                Feature("portrait-selection", true, true, "manifest-v3", "main-UI-Spine-and-PXL", "pose-base-animation-state-conditions", "unselected-states-use-original"),
                 Feature("spine-assets", true, true, "mti-or-resources", "explicit-multiple-pages", "per-viewer-materials", "preserve-playback"),
                 Feature("atlas-region", true, true, "mti-or-resources", "original-full-page-PNG", "copy-packed-rectangle-only", "reject-overlapping-edits"),
                 Feature("atlas-page", true, true, "mti-or-resources", "original-dimensions", "preserve-atlas-layout"),

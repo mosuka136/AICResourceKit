@@ -47,9 +47,10 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 && (loader == "mti" ? ResourceIdentity.MatchesMti(target.AssetKey, target.ImageKey, key, imageKey)
                     : target.ResourcePath == key && target.ObjectType == objectType));
 
-        internal ReplacementTarget Pxl(ISet<string> identities)
+        internal ReplacementTarget Pxl(ISet<string> identities, Func<ReplacementTarget, bool> include = null)
         {
-            var matches = targets.Where(target => target.Loader == "pxl" && identities.Contains(target.Identity)).ToList();
+            var matches = targets.Where(target => target.Loader == "pxl" && identities.Contains(target.Identity)
+                && (include == null ? target.PortraitSelection == null : include(target))).ToList();
             if (matches.GroupBy(target => target.PackageId).Any(group => group.Count() > 1))
                 throw new InvalidOperationException("A pack addresses the same PXL texture through multiple aliases; keep one image/page target.");
             return matches.LastOrDefault();
@@ -76,7 +77,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal bool Invalid(string identity) => invalid.Contains(identity);
         internal List<ReplacementTarget> NewlyEnabledPortraits(ReplacementSelection previous) => targets
-            .Where(target => target.Type == "spine" && !Invalid(target.Identity)
+            .Where(target => target.Type == "spine" && target.PortraitSelection == null && !Invalid(target.Identity)
                 && !previous.Authorizes(new[] { target.Owner })).ToList();
         internal bool Authorizes(IEnumerable<ReplacementPackage> sources) => Enabled
             && sources.Where(source => source != null).All(source => EnabledIds.Contains(source.Id)

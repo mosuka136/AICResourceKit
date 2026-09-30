@@ -1,6 +1,6 @@
 # 资源目标与清单契约
 
-插件 1.1.0 使用 `contractVersion: 1` 的可安装契约，清单格式保持 v2。PXL 使用 `loader: pxl`，普通 Spine 使用 `type: spine-assets`，独立图集使用 `type: atlas-region` / `atlas-page`。视频不支持安装；`ResourceAddressDraft` 仅提供独立地址校验，不属于可安装清单。支持范围见[兼容性说明](compatibility.md)。
+插件 1.2.0 使用 `contractVersion: 2` 的可安装契约，支持清单 v2/v3。v3 增加主界面立绘选择条件；v2 的身份和替换规则保持兼容。PXL 使用 `loader: pxl`，普通 Spine 使用 `type: spine-assets`，独立图集使用 `type: atlas-region` / `atlas-page`。视频不支持安装；`ResourceAddressDraft` 仅提供独立地址校验，不属于可安装清单。支持范围见[兼容性说明](compatibility.md)。
 
 资源包创建见[使用说明](usage.md)，检查和加密见[命令行工具](cli.md)，可运行的 C# 示例见[工具集成](integration.md)。
 
@@ -8,7 +8,7 @@
 
 | 内容 | 位置 |
 | --- | --- |
-| v2 作者 Schema（JSON Schema draft-07） | [resource-replacement.schema.json](resource-replacement/resource-replacement.schema.json) |
+| v2/v3 作者 Schema（JSON Schema draft-07） | [resource-replacement.schema.json](resource-replacement/resource-replacement.schema.json) |
 | 公共正反例、身份串与依赖结果 | [contract-vectors.json](resource-replacement/contract-vectors.json) |
 | 无 Unity 依赖的公共语义 | [Contracts](../AICResourceKit/Contracts/ResourceManifest.cs) |
 | 支持范围与基线限制 | [兼容性说明](compatibility.md) |
@@ -38,7 +38,7 @@ Schema 用于生成规范的小写清单；为兼容旧包，实际解析仍接�
 
 运行时身份不根据 `Texture2D.name`、Unity 临时 instance ID、绝对游戏路径、导出图片文件名或外部工具的内部标识 推导。清单中这些说明性元数据不改变匹配。替换文件的相对路径定位的是候选内容，也不是游戏对象身份。
 
-## v2 身份与匹配
+## 身份与匹配
 
 身份串中的 `\n` 表示实际换行。字段使用序数、区分大小写比较，资源键不修剪、不改成小写。
 
@@ -86,9 +86,17 @@ v2 目标的 `type` 和 `address.kind` 必须同时为 `atlas-region` 或同时�
 
 目标只接受 `type`、`address`、`image`，PNG 是唯一显式依赖，不接受假 JSON、候选 atlas、分段或显示字段。区域输入也是原尺寸整页 PNG，仅复制原打包矩形；整页输入替换全部像素。不同区域可组合，同一精确身份最后一包优先。相同物理页的重叠目标使该页失败并恢复原像素，其他页继续处理。未知区域、布局、尺寸和跨入口冲突在运行时检查，详见[图集替换说明](atlas-replacement.md)。
 
-## v2 字段、依赖与优先级
+## v3 立绘选择条件
 
-顶层为 `formatVersion=2`、非空 `id` 和非空 `targets`。Texture 目标必须提供 `image`。Spine 可提供 `image`、`atlas`、`spine.json + spine.replace`、兼容映射、显示参数和污渍策略，详细字段见 [现有资源包说明](resource-packs.md)。
+`formatVersion=3` 的主立绘 `spine` 和 `texture / pxl` 目标可增加 `portraitSelection`。`poses`、`animations`、`requireStates`、`excludeStates` 的字段语义及完整示例见[选择性替换](portrait-selection.md)。此条件只决定目标是否参与当前主界面立绘，不改变资源身份或声明依赖；`animations` 仅允许用于主立绘 Spine。
+
+v2 中出现 `portraitSelection` 时拒绝清单，防止条件被忽略。其他目标类型使用该字段会被拒绝。空条件、空数组、重复名称、未知状态和互相冲突的状态要求也会被拒绝；条件内不接受未知字段。语义上的状态冲突由公共解析器校验。
+
+`PortraitResourceSelection.Parse` 解析选择条件，`Matches(pose, state, animation)` 使用序数匹配；状态参数为游戏 `EMSTATE` 的 UInt32 标记。没有选择条件时保留整套替换行为。
+
+## 字段、依赖与优先级
+
+顶层为 `formatVersion=2` 或 `3`、非空 `id` 和非空 `targets`。Texture 目标必须提供 `image`。Spine 可提供 `image`、`atlas`、`spine.json + spine.replace`、兼容映射、显示参数和污渍策略，详细字段见 [现有资源包说明](resource-packs.md)。
 
 `spine.replace` 允许 `bones`、`slots`、`constraints`、`skins`、`attachments`、`events`、`animations`、`all`。`all` 不能与其他段混用，`skins` 与 `attachments` 不能在同一目标层同时出现。空 Spine 目标以及只有 fallback、没有实际替换内容的目标被拒绝。
 

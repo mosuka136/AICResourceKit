@@ -1,5 +1,7 @@
 # 资源包参考
 
+只替换主界面 Spine/PXL 的指定姿态或状态（例如 `weak` 非破衣状态）时，使用 v3 清单的 `portraitSelection`，见[选择性替换立绘](portrait-selection.md)。未使用该字段的 v2 包行为不变。
+
 本文说明 AICResourceKit v2 资源包的 Spine 分段替换、兼容映射、显示参数、合成和加密规则。安装和配置见[使用说明](usage.md)，清单校验见[命令行工具](cli.md)，公共 API 见[工具集成](integration.md)；普通纹理的定位规则见[资源契约](resource-contract.md)。
 
 开发调查可使用默认关闭的[资源加载诊断工具](diagnostics.md)，按目标导出实际入口与候选结果。支持范围与基线限制见[兼容性说明](compatibility.md)。

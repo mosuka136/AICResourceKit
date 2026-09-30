@@ -1,5 +1,7 @@
 # 安装与使用
 
+只替换主界面 Spine/PXL 的指定姿态或状态（例如 `weak` 非破衣状态）时，使用 v3 清单的 `portraitSelection`，见[选择性替换立绘](portrait-selection.md)。未使用该字段的 v2 包行为不变。
+
 本文说明插件安装、配置、资源包制作和日常操作。字段定义见[资源契约](resource-contract.md)，发布前检查见[命令行工具](cli.md)，C# API 示例见[工具集成](integration.md)。
 
 可安装清单使用 `formatVersion: 2`。图片、PXL、Spine 和图集各有不同的定位方式与限制，见[兼容性与支持范围](compatibility.md)。

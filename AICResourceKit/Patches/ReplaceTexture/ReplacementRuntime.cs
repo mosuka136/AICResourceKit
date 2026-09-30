@@ -28,6 +28,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             || AllMtiRecords().Any(record => record.Replacement != null)
             || resourceRecords.Values.Any(record => record.Source != null)
             || pxlSurfaces.Values.Any(surface => surface.Applied != null)
+            || portraitPxlImages.Any(entry => entry.Image != null)
             || ordinaryViewers.Values.Any(state => state.Current != null)
             || atlasSurfaces.Values.Any(surface => surface.Contents != null);
 
@@ -148,12 +149,13 @@ namespace AICResourceKit.Patches.ReplaceTexture
             PumpAtlasSurfaces();
             RefreshMtiSpineTextures(previous, force);
             RefreshSpineViewers(previous, force);
+            RefreshPortraitPxl();
             RevokeUnauthorizedPreviews();
             PortraitControlRuntime.OnReplacementSelectionChanged(force
                 ? new List<ReplacementTarget>() : selection.NewlyEnabledPortraits(previous));
         }
 
-        internal static bool PreviewTargetEnabled(ReplacementTarget target) => target != null && Enabled && spineAvailable
+        internal static bool PreviewTargetEnabled(ReplacementTarget target) => target != null && target.PortraitSelection == null && Enabled && spineAvailable
             && selection.Authorizes(new[] { target.Owner }) && selection.Layers(target.Identity).Contains(target)
             && !selection.Invalid(target.Identity)
             && (!target.Owner.Sensitive || ConfigManager.EnableSensitivities?.Value == true);

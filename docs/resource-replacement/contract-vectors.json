@@ -275,7 +275,7 @@
         {
             "name": "unknown-version",
             "manifest": {
-                "formatVersion": 3,
+                "formatVersion": 4,
                 "id": "sample-pack",
                 "targets": [
                     {
@@ -1398,6 +1398,436 @@
             },
             "valid": false,
             "schemaValid": false
+        },
+        {
+            "name": "portrait-normal-only-v3",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "animations": [
+                                "weak"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "spine\nstand_weak\nstand_weak"
+            ],
+            "dependencies": [
+                "image:normal.png"
+            ]
+        },
+        {
+            "name": "portrait-requires-v3",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "animations": [
+                                "weak"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-empty",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {}
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-unknown-state",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "excludeStates": [
+                                "torned"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-empty-poses",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "poses": []
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-null",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": null
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-unknown-field",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "state": [
+                                "NORMAL"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-duplicate",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "STAND",
+                                "STAND"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-contradictory-normal",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "spine",
+                        "key": "stand_weak",
+                        "jsonKey": "stand_weak",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "requireStates": [
+                                "NORMAL",
+                                "LOWHP"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": true,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-unsupported-consumer",
+            "manifest": {
+                "formatVersion": 3,
+                "id": "normal-only",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "resources",
+                        "path": "UI/Icon",
+                        "objectType": "Texture2D",
+                        "image": "normal.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "STAND"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false,
+            "identities": [],
+            "dependencies": []
+        },
+        {
+            "name": "portrait-pxl-v3",
+            "valid": true,
+            "schemaValid": true,
+            "manifest": {
+                "formatVersion": 3,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "DAMAGE_0"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "packed",
+                            "pageOrdinal": 1,
+                            "imageType": 1
+                        },
+                        "image": "page.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "DAMAGE_0"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-image",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "imageId": "4294967295",
+                            "imageId2": "123.45678901234567",
+                            "role": "I"
+                        },
+                        "image": "page.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "DAMAGE_0"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "identities": [
+                "texture\npxl\n8:pxl-page3:mti17:PxlNoel/noel.pxls9:noel.pxls8:external1:0",
+                "texture\npxl\n8:pxl-page3:mti17:PxlNoel/noel.pxls9:noel.pxls6:packed1:11:1",
+                "texture\npxl\n9:pxl-image3:mti17:PxlNoel/noel.pxls9:noel.pxls10:429496729516:405EDD3C07FB4C981:I"
+            ],
+            "dependencies": [
+                "image:page.png",
+                "image:page.png",
+                "image:page.png"
+            ]
+        },
+        {
+            "name": "portrait-pxl-rejects-animation-condition",
+            "valid": false,
+            "schemaValid": false,
+            "manifest": {
+                "formatVersion": 3,
+                "id": "pxl-pack",
+                "targets": [
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "external",
+                            "pageIndex": 0
+                        },
+                        "image": "page.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "DAMAGE_0"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ],
+                            "animations": [
+                                "weak"
+                            ]
+                        }
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-page",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "storage": "packed",
+                            "pageOrdinal": 1,
+                            "imageType": 1
+                        },
+                        "image": "page.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "DAMAGE_0"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    },
+                    {
+                        "type": "texture",
+                        "loader": "pxl",
+                        "address": {
+                            "kind": "pxl-image",
+                            "source": {
+                                "loader": "mti",
+                                "assetKey": "PxlNoel/noel.pxls",
+                                "textKey": "noel.pxls"
+                            },
+                            "imageId": "4294967295",
+                            "imageId2": "123.45678901234567",
+                            "role": "I"
+                        },
+                        "image": "page.png",
+                        "portraitSelection": {
+                            "poses": [
+                                "DAMAGE_0"
+                            ],
+                            "excludeStates": [
+                                "TORNED"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "identities": [
+                "texture\npxl\n8:pxl-page3:mti17:PxlNoel/noel.pxls9:noel.pxls8:external1:0",
+                "texture\npxl\n8:pxl-page3:mti17:PxlNoel/noel.pxls9:noel.pxls6:packed1:11:1",
+                "texture\npxl\n9:pxl-image3:mti17:PxlNoel/noel.pxls9:noel.pxls10:429496729516:405EDD3C07FB4C981:I"
+            ],
+            "dependencies": [
+                "image:page.png",
+                "image:page.png",
+                "image:page.png"
+            ]
         }
     ]
 }

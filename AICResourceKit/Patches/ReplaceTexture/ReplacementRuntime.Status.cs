@@ -76,8 +76,13 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     .Select(binding => binding.Surface).Distinct();
                 foreach (var surface in surfaces)
                 {
-                    bool applied = surface.Applied?.Identity == identity;
-                    result.Observe(applied, surface.Pending != null, applied ? new[] { surface.Applied.PackageId } : null);
+                    var packages = new HashSet<string>(StringComparer.Ordinal);
+                    if (surface.Applied?.Identity == identity) packages.Add(surface.Applied.PackageId);
+                    foreach (var body in LivePortraitBodies().Where(body => ReferenceEquals(body.PCon?.getBodyData(), body)))
+                        if (portraitContexts.TryGetValue(body, out var context) && context.Image?.Target.Identity == identity
+                            && context.Image.Image != null && ReferenceEquals(context.Image.Original, surface.Texture))
+                            packages.Add(context.Image.Target.PackageId);
+                    result.Observe(packages.Count > 0, surface.Pending != null, packages);
                 }
             }
             else if (target.Loader == "mti")
