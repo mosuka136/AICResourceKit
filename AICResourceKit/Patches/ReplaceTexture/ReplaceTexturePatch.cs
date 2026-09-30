@@ -143,7 +143,11 @@ namespace AICResourceKit.Patches
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SpineViewerNel), nameof(SpineViewerNel.clearAnim))]
-        private static void BeforeClear(SpineViewerNel __instance) => ReplacementRuntime.BeforeSwitch(__instance);
+        private static void BeforeClear(SpineViewerNel __instance, ref string anim_name)
+        {
+            anim_name = ReplacementRuntime.PreviewAnimation(__instance, anim_name);
+            ReplacementRuntime.BeforeSwitch(__instance);
+        }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SpineViewerNel), nameof(SpineViewerNel.clearAnim))]

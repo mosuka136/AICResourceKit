@@ -77,7 +77,8 @@
         "manifest-v3",
         "main-UI-Spine-and-PXL",
         "pose-base-animation-state-conditions",
-        "unselected-states-use-original"
+        "unselected-states-use-original",
+        "conditional-portrait-preview"
       ]
     },
     {

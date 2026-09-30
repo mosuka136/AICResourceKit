@@ -64,7 +64,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (texture == null) return;
             string key = viewer.replace_json_key ?? texture.MtiText.default_json_key;
             string identity = SpineIdentity(texture.key, key);
-            bool conditional = selection.Layers(identity).Any(layer => layer.PortraitSelection != null)
+            bool conditional = IsActivatingResourcePreview(body)
+                || selection.Layers(identity).Any(layer => layer.PortraitSelection != null)
                 || (spineStates.TryGetValue(texture, out var previous) && previous.Conditional);
             var context = portraitContexts.GetValue(body, _ => new PortraitContext());
             context.Body = body;
@@ -93,6 +94,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             context.Animations = animator.GetValue(viewer) is SkeletonAnimation animation
                 ? SpinePlayback.AnimationNames(animation.state) : new string[0];
             context.Collecting = false;
+            if (CompleteResourcePreview(body, context)) return;
             if (spineStates.TryGetValue(viewer.getSvTexture(), out var resource))
             {
                 CancelSpinePreparation(resource);
@@ -150,9 +152,21 @@ namespace AICResourceKit.Patches.ReplaceTexture
             context.Image = null;
             if (!Enabled || !pxlSurfaces.TryGetValue(original, out var surface)) return original;
             var identities = new HashSet<string>(surface.Bindings.Select(binding => binding.Address.Identity), StringComparer.Ordinal);
-            var target = selection.Pxl(identities, context.Matches);
+            var selected = selection.Pxl(identities, context.Matches);
+            var target = ReferenceEquals(body, pxlPreviewBody) && PreviewTargetEnabled(pxlPreviewTarget)
+                && identities.Contains(pxlPreviewTarget.Identity) && context.Matches(pxlPreviewTarget)
+                ? pxlPreviewTarget : selected;
             if (target?.PortraitSelection == null) return original;
             if (identities.Any(selection.Invalid)) return original;
+            var record = PreparePortraitPxlImage(original, target);
+            if (record.Failed || record.Image == null) return original;
+            context.Image = record;
+            TrackResourceResult(target.Identity, "candidate-applied", null);
+            return record.Image;
+        }
+
+        private static PortraitPxlImage PreparePortraitPxlImage(Texture original, ReplacementTarget target)
+        {
             var record = portraitPxlImages.FirstOrDefault(item => ReferenceEquals(item.Original, original) && item.Target == target);
             if (record == null)
             {
@@ -169,7 +183,6 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     record.Image.wrapModeU = original.wrapModeU;
                     record.Image.wrapModeV = original.wrapModeV;
                     record.Image.anisoLevel = original.anisoLevel;
-                    TrackResourceResult(target.Identity, "candidate-applied", null);
                 }
                 catch (Exception error)
                 {
@@ -180,9 +193,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     BLog.Error("Portrait PXL selection rejected; using the original page.", error);
                 }
             }
-            if (record.Failed || record.Image == null) return original;
-            context.Image = record;
-            return record.Image;
+            return record;
         }
 
         private static IEnumerable<UIPictureBodyData> LivePortraitBodies()

@@ -155,15 +155,20 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 ? new List<ReplacementTarget>() : selection.NewlyEnabledPortraits(previous));
         }
 
-        internal static bool PreviewTargetEnabled(ReplacementTarget target) => target != null && target.PortraitSelection == null && Enabled && spineAvailable
+        internal static bool PreviewTargetEnabled(ReplacementTarget target) => ReplacementPreview.Supports(target) && Enabled && (target.Type != "spine" || spineAvailable)
             && selection.Authorizes(new[] { target.Owner }) && selection.Layers(target.Identity).Contains(target)
             && !selection.Invalid(target.Identity)
             && (!target.Owner.Sensitive || ConfigManager.EnableSensitivities?.Value == true);
 
-        internal static PortraitPreviewReadiness PreviewReadiness(UIPictureBodySpine body, ReplacementTarget target)
+        internal static PortraitPreviewReadiness PreviewReadiness(UIPictureBodyData body, ReplacementTarget target)
         {
             if (!PreviewTargetEnabled(target)) return PortraitPreviewReadiness.Failed;
-            var viewer = body?.getViewer();
+            if (target.Loader == "pxl")
+                return ReferenceEquals(pxlPreviewBody, body) && ReferenceEquals(pxlPreviewTarget, target)
+                    && portraitContexts.TryGetValue(body, out var context) && context.Image?.Image != null
+                    && ReferenceEquals(context.Image.Target, target)
+                    ? PortraitPreviewReadiness.Ready : PortraitPreviewReadiness.Failed;
+            var viewer = (body as UIPictureBodySpine)?.getViewer();
             var texture = viewer?.getSvTexture();
             if (texture == null || texture.key != target.SpineKey
                 || (viewer.replace_json_key ?? texture.MtiText.default_json_key) != target.JsonKey)

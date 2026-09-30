@@ -33,7 +33,6 @@ namespace AICResourceKit.Patches
         private static List<PortraitPoseEntry> shownPoses = new List<PortraitPoseEntry>();
         private static List<PortraitSelection> shownPresets = new List<PortraitSelection>();
         private static PortraitSelection? rollbackOverride;
-        private static int resourceRevision;
         private static byte sensitiveLevel;
         private static bool refreshRequired;
 
@@ -189,7 +188,6 @@ namespace AICResourceKit.Patches
                     Stop(restore: true, clearSelection: false);
                     Session.Bind(picture);
                 }
-                resourceRevision = ReplacementRuntime.Revision;
                 sensitiveLevel = X.sensitive_level;
                 Session.Queue(draft.Value, lockAfter, Time.unscaledTime);
                 Tick(picture);
@@ -221,10 +219,9 @@ namespace AICResourceKit.Patches
             }
             try
             {
-                if (resourceRevision != ReplacementRuntime.Revision || sensitiveLevel != X.sensitive_level
-                    || !ReferenceEquals(catalogSource, PortraitControlCatalog.Read(picture)))
+                // 资源重绑由替换运行时完成；再次强制切姿态会短暂显示原资源并重启动画。
+                if (sensitiveLevel != X.sensitive_level || !ReferenceEquals(catalogSource, PortraitControlCatalog.Read(picture)))
                 {
-                    resourceRevision = ReplacementRuntime.Revision;
                     sensitiveLevel = X.sensitive_level;
                     EnsureCatalog();
                     refreshRequired = true;

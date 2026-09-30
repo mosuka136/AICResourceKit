@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using XX;
 using Object = UnityEngine.Object;
 
 namespace AICResourceKit.Patches.ReplaceTexture
@@ -21,12 +22,24 @@ namespace AICResourceKit.Patches.ReplaceTexture
             internal readonly List<ReplacementPackage> Sources = new List<ReplacementPackage>();
             internal Texture Image;
             internal bool OwnImage;
+            private MTIOneImage sourceImage;
+            private string sourceLoadKey;
+
             internal TextAsset JsonText;
             internal TextAsset AtlasText;
             internal SpineAtlasAsset Atlas;
             internal SkeletonDataAsset Data;
             internal Material StagingMaterial;
             internal SpineCompositionResult Composition;
+
+            internal void UseOriginalImage(MTIOneImage source)
+            {
+                // releaseTexture 会移除游戏的 _SV 引用；复用原图的组合需持有自己的引用。
+                sourceImage = source;
+                sourceLoadKey = "_AICResourceKit_" + Guid.NewGuid().ToString("N");
+                sourceImage.addLoadKey(sourceLoadKey, false);
+                Image = sourceImage.Image;
+            }
 
             internal void Bind(Material[] materials)
             {
@@ -43,6 +56,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 if (AtlasText != null) Object.Destroy(AtlasText);
                 if (StagingMaterial != null) Object.Destroy(StagingMaterial);
                 if (OwnImage && Image != null) Object.Destroy(Image);
+                sourceImage?.remLoadKey(sourceLoadKey);
+                sourceImage = null;
             }
         }
 
@@ -84,7 +99,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 }
                 else
                 {
-                    bundle.Image = texture.MtiImage0.Image;
+                    bundle.UseOriginalImage(texture.MtiImage0);
                     if (bundle.Image == null) throw new InvalidDataException("Original Spine texture is not loaded yet.");
                     ValidateAtlasTexture(metadataAtlas, bundle.Image);
                 }

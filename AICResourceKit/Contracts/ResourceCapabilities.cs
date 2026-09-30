@@ -33,7 +33,7 @@ namespace AICResourceKit.Contracts
                 Feature("texture-resources", true, true, "Texture2D", "unpacked-Sprite", "original-dimensions-and-geometry"),
                 Feature("texture-pxl", true, true, "embedded-I-P", "external-and-packed-pages", "original-dimensions", "shared-texture-conflicts-rejected"),
                 Feature("spine", true, true, "Spine-4.1-JSON", "single-page", "sections-and-compatibility", "portrait-preview"),
-                Feature("portrait-selection", true, true, "manifest-v3", "main-UI-Spine-and-PXL", "pose-base-animation-state-conditions", "unselected-states-use-original"),
+                Feature("portrait-selection", true, true, "manifest-v3", "main-UI-Spine-and-PXL", "pose-base-animation-state-conditions", "unselected-states-use-original", "conditional-portrait-preview"),
                 Feature("spine-assets", true, true, "mti-or-resources", "explicit-multiple-pages", "per-viewer-materials", "preserve-playback"),
                 Feature("atlas-region", true, true, "mti-or-resources", "original-full-page-PNG", "copy-packed-rectangle-only", "reject-overlapping-edits"),
                 Feature("atlas-page", true, true, "mti-or-resources", "original-dimensions", "preserve-atlas-layout"),

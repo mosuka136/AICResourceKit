@@ -102,6 +102,8 @@ python tools/validate-contract-schema.py
 - PXL 从实际 MTI 文本/字节来源绑定到 PxlCharacter，独立图片与整页地址分开；图层和材质继续引用原纹理。用原生 LoadImage 更新不可读纹理，不能直接对它调用 Reinitialize。
 - 普通 SpineViewer 在真实 prepareAtlasAssetsS 入口记录原始来源，在 prepare/attachPreload 时绑定消费者。不得改写 MTISpine 共享缓存；页面材质按查看器独立创建，保留模板和混合设置。
 - 普通查看器刷新沿用 AnimationState、TrackEntry、队列和事件订阅，重新映射动画及循环帧；不能用 clearAnim 重置剧情播放。主立绘仍走 SvTexture、污渍和预览的原流程。
+- 条件立绘预览必须先匹配真实资源地址、姿态、基础动画和状态。Spine 先让游戏选出完整轨道与皮肤，再在同次绘制中校验并绑定候选；PXL 仅临时绑定当前立绘的私有图片。当前实际动作和状态已匹配新包时跳过预览。计时从实际显示开始；恢复也先准备原姿态的正常顺序组合，在同次绘制中重绑完整轨道与皮肤。资源重绑不重复强制应用控制页锁定姿态，以免闪回原版或重启动画。
+- 复用原贴图的 Spine 组合须持有独立的 MTI 加载引用，随组合释放，避免 `SvTexture.releaseTexture` 提前卸载借用的原图。
 - 独立图集从真实文本来源绑定 SpineAtlasAsset，PICT 使用 SpvLoader 的实际页纹理；不要求骨架 JSON，不猜测容器键。按物理纹理合并不重叠区域，从原像素重新合成，保留 AtlasRegion、材质和共享纹理引用。坏页恢复原像素，其他页继续处理。
 - 图集与 PXL 共用 SharedTextureContents；区域矩形使用当前游戏 Atlas 读取器已旋转后的宽高，坐标从左上转换到 Unity 像素行。后台只读文件和校验元数据，解码与上传留在主线程。
 - MPCC 报告由控制页显式触发，使用原生读取器；逐文件隔离错误，空预设保持为空。输出区分主动调查和自然游戏解码；运行时 AddChr 的输入地址必须来自 PXL 登记，不能从预设文件名推导。报告不加载角色、不应用调色、不接管生成后的 RenderTexture。

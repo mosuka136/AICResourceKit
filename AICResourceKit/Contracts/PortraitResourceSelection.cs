@@ -44,6 +44,15 @@ namespace AICResourceKit.Contracts
             return result;
         }
 
+        // 生成预览请求后仍需经过游戏状态归一化及 Matches 校验，不能强行显示不受支持的状态。
+        internal uint PreviewState(uint state)
+        {
+            if (RequireStates.Contains("NORMAL")) return 0;
+            foreach (string name in RequireStates) state |= States[name];
+            foreach (string name in ExcludeStates) state &= ~States[name];
+            return state;
+        }
+
         public bool Matches(string pose, uint state, string animation = null) =>
             (Poses.Count == 0 || Poses.Contains(pose))
             && (Animations.Count == 0 || Animations.Contains(animation))
