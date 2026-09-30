@@ -1190,6 +1190,214 @@
             },
             "valid": false,
             "schemaValid": false
+        },
+        {
+            "name": "atlas-three-independent-picture-regions",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0001",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0002",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "atlas-region\n12:atlas-region3:mti32:Fatal/cuts_nightingale_0_0.atlas26:cuts_nightingale_0_0.atlas18:noel_peeping__0000",
+                "atlas-region\n12:atlas-region3:mti32:Fatal/cuts_nightingale_0_0.atlas26:cuts_nightingale_0_0.atlas18:noel_peeping__0001",
+                "atlas-region\n12:atlas-region3:mti32:Fatal/cuts_nightingale_0_0.atlas26:cuts_nightingale_0_0.atlas18:noel_peeping__0002"
+            ],
+            "dependencies": [
+                "image:page.png",
+                "image:page.png",
+                "image:page.png"
+            ]
+        },
+        {
+            "name": "atlas-whole-page-no-json",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-page",
+                        "address": {
+                            "kind": "atlas-page",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "pageKey": "page.png",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "atlas-page\n10:atlas-page3:mti32:Fatal/cuts_nightingale_0_0.atlas26:cuts_nightingale_0_0.atlas8:page.png"
+            ],
+            "dependencies": [
+                "image:page.png"
+            ]
+        },
+        {
+            "name": "atlas-resources-region",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "resources",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": true,
+            "schemaValid": true,
+            "identities": [
+                "atlas-region\n12:atlas-region9:resources26:cuts_nightingale_0_0.atlas18:noel_peeping__0000"
+            ],
+            "dependencies": [
+                "image:page.png"
+            ]
+        },
+        {
+            "name": "atlas-duplicate-region",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    },
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": true
+        },
+        {
+            "name": "atlas-no-fake-json",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png",
+                        "jsonKey": "fake"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "atlas-kind-must-match-type",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-page",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        },
+                        "image": "page.png"
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
+        },
+        {
+            "name": "atlas-image-required",
+            "manifest": {
+                "formatVersion": 2,
+                "id": "atlas-sample",
+                "targets": [
+                    {
+                        "type": "atlas-region",
+                        "address": {
+                            "kind": "atlas-region",
+                            "loader": "mti",
+                            "atlasKey": "cuts_nightingale_0_0.atlas",
+                            "region": "noel_peeping__0000",
+                            "assetKey": "Fatal/cuts_nightingale_0_0.atlas"
+                        }
+                    }
+                ]
+            },
+            "valid": false,
+            "schemaValid": false
         }
     ]
 }

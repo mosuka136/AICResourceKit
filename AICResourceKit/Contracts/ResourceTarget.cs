@@ -21,6 +21,7 @@ namespace AICResourceKit.Contracts
         public string Loader;
         public PxlResourceAddress PxlAddress;
         public SpineResourceAddress SpineAddress;
+        public AtlasResourceAddress AtlasAddress;
         public readonly List<ResourcePageDraft> Pages = new List<ResourcePageDraft>();
         public string AssetKey;
         public string ImageKey;
@@ -56,6 +57,7 @@ namespace AICResourceKit.Contracts
         {
             get
             {
+                if (AtlasAddress != null) return AtlasAddress.Identity;
                 if (Type == "spine-assets") return SpineAddress.Identity;
                 if (Type == "spine") return ResourceIdentity.Spine(SpineKey, JsonKey);
                 if (Loader == "pxl") return PxlAddress.Identity;

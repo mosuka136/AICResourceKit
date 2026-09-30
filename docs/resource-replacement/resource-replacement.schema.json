@@ -36,6 +36,12 @@
                     },
                     {
                         "$ref": "#/definitions/spineAssets"
+                    },
+                    {
+                        "$ref": "#/definitions/atlasRegion"
+                    },
+                    {
+                        "$ref": "#/definitions/atlasPage"
                     }
                 ]
             }
@@ -1097,6 +1103,176 @@
                 }
             },
             "additionalProperties": false
+        },
+        "atlasRegion": {
+            "type": "object",
+            "required": [
+                "type",
+                "address",
+                "image"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "const": "atlas-region"
+                },
+                "address": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "required": [
+                                "kind",
+                                "loader",
+                                "atlasKey",
+                                "region",
+                                "assetKey"
+                            ],
+                            "properties": {
+                                "kind": {
+                                    "const": "atlas-region"
+                                },
+                                "loader": {
+                                    "const": "mti"
+                                },
+                                "atlasKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                },
+                                "region": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                },
+                                "assetKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "kind",
+                                "loader",
+                                "atlasKey",
+                                "region"
+                            ],
+                            "properties": {
+                                "kind": {
+                                    "const": "atlas-region"
+                                },
+                                "loader": {
+                                    "const": "resources"
+                                },
+                                "atlasKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                },
+                                "region": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    ]
+                },
+                "image": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                }
+            }
+        },
+        "atlasPage": {
+            "type": "object",
+            "required": [
+                "type",
+                "address",
+                "image"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "const": "atlas-page"
+                },
+                "address": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "required": [
+                                "kind",
+                                "loader",
+                                "atlasKey",
+                                "pageKey",
+                                "assetKey"
+                            ],
+                            "properties": {
+                                "kind": {
+                                    "const": "atlas-page"
+                                },
+                                "loader": {
+                                    "const": "mti"
+                                },
+                                "atlasKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                },
+                                "pageKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                },
+                                "assetKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "type": "object",
+                            "required": [
+                                "kind",
+                                "loader",
+                                "atlasKey",
+                                "pageKey"
+                            ],
+                            "properties": {
+                                "kind": {
+                                    "const": "atlas-page"
+                                },
+                                "loader": {
+                                    "const": "resources"
+                                },
+                                "atlasKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                },
+                                "pageKey": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$))(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    ]
+                },
+                "image": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^(?![/\\\\])(?!.*[:\\r\\n\\u0000])(?=.*\\S).+$"
+                }
+            }
         }
     }
 }

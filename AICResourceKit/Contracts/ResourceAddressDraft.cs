@@ -17,7 +17,7 @@ namespace AICResourceKit.Contracts
             string kind = Key(address, "kind");
             var parts = new List<string> { kind };
             var fields = new List<string> { "kind" };
-            if (kind == "spine-assets" || kind == "atlas-region")
+            if (kind == "spine-assets" || kind == "atlas-region" || kind == "atlas-page")
             {
                 string loader = Key(address, "loader");
                 if (loader != "mti" && loader != "resources") throw new InvalidDataException("Draft loader must be mti or resources.");
@@ -25,7 +25,7 @@ namespace AICResourceKit.Contracts
                 fields.Add("loader");
                 if (loader == "mti") Add(address, parts, fields, "assetKey");
                 Add(address, parts, fields, "atlasKey");
-                Add(address, parts, fields, kind == "spine-assets" ? "jsonKey" : "region");
+                Add(address, parts, fields, kind == "spine-assets" ? "jsonKey" : kind == "atlas-page" ? "pageKey" : "region");
             }
             else if (kind == "pxl-image" || kind == "pxl-page")
             {

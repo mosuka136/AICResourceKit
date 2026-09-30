@@ -2,7 +2,7 @@
 
 本文介绍插件安装与日常操作、v2 资源包制作、清单校验、公共 API 和地址草案。玩家可先阅读第 1 节和第 2.4 节；资源包作者与工具开发者按下表选择后续内容。
 
-当前可安装的清单版本为 `formatVersion: 2`；PXL 图片与页目标使用 `loader: pxl`，详见[PXL 使用说明](pxl-replacement.md)。普通剧情 Spine 与多页 atlas 使用 `type: spine-assets`，详见[普通 SpineViewer 使用说明](spine-viewer-replacement.md)。独立地址草案文件不能直接作为资源包安装。
+当前可安装的清单版本为 `formatVersion: 2`；PXL 图片与页目标使用 `loader: pxl`，详见[PXL 使用说明](pxl-replacement.md)。普通剧情 Spine 与多页 atlas 使用 `type: spine-assets`，详见[普通 SpineViewer 使用说明](spine-viewer-replacement.md)。独立图集和 PICT 图片使用 `type: atlas-region` / `atlas-page`，详见[图集替换说明](atlas-replacement.md)。独立地址草案文件不能直接作为资源包安装。
 
 ## 1. 安装与日常操作
 
@@ -12,7 +12,8 @@
 | 检查项目的契约测试是否正常 | 运行第 3.1 节的现有检查命令 |
 | 为自己的工具解析目标、检查重复或收集依赖 | 链接 `Contracts` 源码，使用第 4 节的 C# 示例 |
 | 制作剧情 Spine 或多页 atlas 包 | 使用[普通 SpineViewer 替换](spine-viewer-replacement.md)中的清单与页映射 |
-| 研究未来的视频或 atlas 区域目标 | 使用第 5 节的地址草案 API；不会触发资源替换 |
+| 替换 PICT 图片或独立 atlas 页 | 使用[图集替换](atlas-replacement.md)中的区域和整页目标 |
+| 研究未来的视频目标 | 使用第 5 节的地址草案 API；不会触发资源替换 |
 | 查看字段和错误处理的完整定义 | 阅读[资源目标与清单契约](resource-contract.md) |
 
 除明确标为游戏目录的路径外，下面的命令均从 AICResourceKit 仓库根目录执行。C# 示例与加密工具需要 .NET 8 SDK；Schema 检查需要 Python 和 `jsonschema`。游戏插件运行不需要 Python。
@@ -211,6 +212,10 @@ BepInEx/plugins/AICResourceKit/ReplaceTexture/
 ### 2.7 替换 PXL 图片与页面
 
 使用 `type: "texture"`、`loader: "pxl"`、`address` 和 `image`。先从运行时诊断复制来源、原始 ID 或页序号，再准备同尺寸的完整 PNG；外部、内嵌、打包与额外页分别登记，保留原帧和图层关系。完整示例、共享页冲突及刷新规则见 [PXL 使用说明](pxl-replacement.md)。
+
+### 2.8 替换剧情图集中的独立图片
+
+使用 `type: "atlas-region"`、实际 atlas 来源地址及候选整页 PNG，只复制指定区域的像素。使用 `type: "atlas-page"` 则明确覆盖整页。两种入口均不需要骨架 JSON，不改原区域布局；同一页不允许重叠的整页和区域目标。三张 `noel_peeping__0000/0001/0002` 的完整示例、地址获取及刷新规则见[图集替换说明](atlas-replacement.md)。
 
 ## 3. 校验清单
 

@@ -30,7 +30,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         {
             internal Texture Texture;
             internal readonly HashSet<PxlBinding> Bindings = new HashSet<PxlBinding>();
-            internal PxlTextureContents Contents;
+            internal SharedTextureContents Contents;
             internal ReplacementTarget Applied;
             internal ReplacementWork<byte[]> Pending;
             internal int Attempt = -1;
@@ -266,7 +266,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     if (error != null) throw error;
                 }
                 ValidateCurrent(target);
-                if (surface.Contents == null) surface.Contents = new PxlTextureContents(surface.Texture);
+                if (surface.Contents == null) surface.Contents = new SharedTextureContents(surface.Texture);
                 surface.Contents.Apply(bytes);
                 surface.Applied = target;
                 surface.Attempt = revision;

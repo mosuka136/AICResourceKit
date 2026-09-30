@@ -19,6 +19,8 @@ PXL 图片与整页使用 `loader: pxl`，示例与限制见 [PXL 替换说明](
 
 普通剧情骨架使用 `type: spine-assets`，支持单页和显式多页 atlas，见[普通 SpineViewer 替换](spine-viewer-replacement.md)。以下 JSON 分段与兼容映射规则可复用；显示参数只支持 `skeletonScale`，不使用主立绘污渍策略。
 
+独立图集与 PICT 图片使用 `type: atlas-region` / `atlas-page`，仅声明实际 atlas 来源与 PNG，不提供骨架 JSON。区域、整页和共享冲突规则见[图集替换说明](atlas-replacement.md)。
+
 不支持 Spine 二进制格式、主立绘多页 atlas、自定义情绪状态机、散装 PNG 和 v1 `.portrait.json`。
 
 ## 普通图片与 Sprite
@@ -87,7 +89,7 @@ dotnet AICResourceKit.ResourceEncryptor/bin/Debug/net8.0/AICResourceKit.Resource
 
 - 输入为资源根目录；`Sensitive` 必须位于该根目录下，才能按游戏相同的边界规则验证。
 - 输出目录必须不存在，其父目录必须已存在；输入与输出不能相同或互相包含。文件、目录及其祖先不能使用链接或 junction。
-- 工具扫描全部 v2 `.replacement.json` 清单，只输出清单及其 `image`、`atlas`、`spine.json` 引用的文件。共享依赖去重，保留相对路径；未引用的工程文件、图片等不输出。
+- 工具扫描全部 v2 `.replacement.json` 清单，只输出清单及其 `image`、`pages[].image`、`atlas`、`spine.json` 引用的文件。共享依赖去重，保留相对路径；未引用的工程文件、图片等不输出。
 - 支持明文、密文或混合输入。密文输入先校验、解密，再以新随机 IV 加密，避免重复封装。源文件始终保留。
 - 先验证清单、路径、依赖和已有密文的完整性，再在输出父目录的临时目录中生成密文；逐文件回读并与验证阶段的明文摘要比较，全部通过才重命名为输出目录。失败会清理本次临时结果，输出目录不会出现半成品。
 - 工具检查资源格式和依赖，不代替游戏中的 Spine 合成、动画兼容及显示验收。

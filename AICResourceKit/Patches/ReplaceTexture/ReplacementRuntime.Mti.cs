@@ -65,6 +65,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal static void ReleaseMti(MTI container)
         {
             if (container == null) return;
+            ReleaseAtlasContainer(container);
             if (container is MTIOneImage single && mtiRecords.TryGetValue(single, out var primary))
             {
                 mtiRecords.Remove(single);

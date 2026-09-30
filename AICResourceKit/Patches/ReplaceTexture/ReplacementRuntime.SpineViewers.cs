@@ -58,6 +58,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal static void RememberSpineAssets(SpineResourceAddress address, SpineAtlasAsset atlas, SkeletonDataAsset data)
         {
             if (address == null || atlas == null || data == null) return;
+            RememberAtlasSource(atlas, address.Loader, address.AssetKey, address.AtlasKey);
             viewerSources.Remove(data);
             viewerSources.Add(data, new ViewerSpineSource { Address = address, Atlas = atlas, Data = data });
         }

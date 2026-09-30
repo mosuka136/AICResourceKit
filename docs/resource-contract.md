@@ -1,6 +1,6 @@
 # 资源目标与清单契约（P02）
 
-状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。PXL 子集已接入 v2 `loader: pxl`，普通 Spine 已接入 `type: spine-assets`；其他新地址草案仍只描述定位与校验规则。
+状态：可测试草案，P10 交接前定版。现有可安装格式仍为 v2。PXL 子集已接入 v2 `loader: pxl`，普通 Spine 已接入 `type: spine-assets`，独立图集已接入 `type: atlas-region` / `atlas-page`；其他新地址草案仍只描述定位与校验规则。
 
 资源包创建、校验命令及可运行的 C# API 示例见[资源契约使用说明](usage.md)。
 
@@ -21,6 +21,7 @@
 - `ResourceIdentity`：生成既有 v2 身份，提供 MTI 匹配谓词。
 - `PxlResourceAddress.Parse`、`Describe`、`Embedded`、`Page`：PXL 可安装地址的解析、输出与构造。
 - `SpineResourceAddress.Parse`、`Create`、`Describe`：普通查看器的加载范围、atlas 和 JSON 地址。
+- `AtlasResourceAddress.Parse`、`Create`、`Describe`：独立图集区域和整页地址，不包含 JSON 键。
 - `ResourceAddressDraft.IdentityOf`、`ValidatePages`：保留独立地址与完整页映射草案 API，不直接触发替换。
 
 解析 API 接受已解码的 `Dictionary<string, object>`，数组为 `List<object>`，数字为 `float`、`double`、`int` 或 `long`。JSON 解码由宿主负责：插件沿用 Spine 解码器，加密工具使用 System.Text.Json。制作工具应保留字符串键的大小写，不将 PXL 的第二图片 ID 经单精度浮点数转换。
@@ -79,6 +80,12 @@ v2 新增 `type=spine-assets`，用 `address={kind:spine-assets,loader,assetKey?
 
 共享 JSON 分段与兼容映射规则，显示参数仅支持 `skeletonScale`；不接受 `effects` 和其他主立绘显示字段。完整示例和生命周期见[普通 SpineViewer 说明](spine-viewer-replacement.md)。
 
+## 独立图集区域与整页扩展
+
+v2 目标的 `type` 和 `address.kind` 必须同时为 `atlas-region` 或同时为 `atlas-page`。地址公共字段为 `loader`、MTI 专用的 `assetKey`、`atlasKey`；区域使用 `region`，整页使用 `pageKey`。Resources 不允许 `assetKey`。身份为对应类型加 `\n`，再加 draft1 地址去掉前缀后的长度编码；区域、整页和骨架身份独立。字段顺序为 kind、loader、MTI assetKey（如有）、atlasKey、region/pageKey。
+
+目标只接受 `type`、`address`、`image`，PNG 是唯一显式依赖，不接受假 JSON、候选 atlas、分段或显示字段。区域输入也是原尺寸整页 PNG，仅复制原打包矩形；整页输入替换全部像素。不同区域可组合，同一精确身份最后一包优先。相同物理页的重叠目标使该页失败并恢复原像素，其他页继续处理。未知区域、布局、尺寸和跨入口冲突在运行时检查，详见[图集替换说明](atlas-replacement.md)。
+
 ## v2 字段、依赖与优先级
 
 顶层为 `formatVersion=2`、非空 `id` 和非空 `targets`。Texture 目标必须提供 `image`。Spine 可提供 `image`、`atlas`、`spine.json + spine.replace`、兼容映射、显示参数和污渍策略，详细字段见 [现有资源包说明](resource-packs.md)。
@@ -113,7 +120,8 @@ v2 新增 `type=spine-assets`，用 `address={kind:spine-assets,loader,assetKey?
 | kind | 身份组成 | 接入与证据边界 |
 | --- | --- | --- |
 | `spine-assets` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `jsonKey` | 来自 prepareAtlasAssetsS 的真实参数；Resources 不允许混入 assetKey；已通过 v2 `type: spine-assets` 接入 |
-| `atlas-region` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `region` | 区域属于共享 atlas，不添加无关骨架 JSON；P06 接入 |
+| `atlas-region` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `region` | 区域属于共享 atlas，不添加无关骨架 JSON；已通过 v2 同名 type 接入 |
+| `atlas-page` | `loader` + MTI `assetKey`（仅 mti）+ `atlasKey` + `pageKey` | 原尺寸整页替换；已通过 v2 同名 type 接入 |
 | `pxl-image` | `source={loader:mti,assetKey,textKey}` + `imageId` + `imageId2` + `role=I/P` | 来源需在读取 PXL 文本资产处绑定到角色对象，不能用 external_png_header 的默认值猜测；已通过 `loader: pxl` 接入 |
 | `pxl-page` | 同一 PXL source + `storage=external,pageIndex`，或 `storage=packed,pageOrdinal,imageType` | 外部数组槽位与打包页序号不是同一标识；已通过 `loader: pxl` 接入 |
 | `video` | `assetKey` + `clipKey` | 已观察到的 MTI VideoClip 来源；P08 处理播放器与生命周期 |
@@ -131,7 +139,7 @@ PXL 的 `imageId` 是 UInt32 十进制字符串；`imageId2` 是原始 double �
 - 缺页、未知页、重复页、空原始目录都拒绝；区分大小写，不按列表顺序猜测。
 - 不同页可以明确指向同一个候选图片；不代表可以省略其中一页。
 - 返回候选图片依赖，随后仍须检查文件存在性、根目录边界、Sensitive 授权及图片/UV 兼容性。
-- 整页替换与逐区域合成若作用于同一对象，后续适配器必须建立重叠检测。在接入规则形成前，不承诺两种粒度能同时组合。
+- 独立图集适配器拒绝同一物理纹理上的整页与区域重叠，或不同地址的像素重叠；不按列表顺序混合两种粒度。
 
 ## 验证
 

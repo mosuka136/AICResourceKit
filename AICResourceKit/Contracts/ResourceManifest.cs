@@ -42,9 +42,10 @@ namespace AICResourceKit.Contracts
         public static string IdentityOf(Dictionary<string, object> json)
         {
             string type = Required(json, "type").ToLowerInvariant();
+            if (type == "atlas-region" || type == "atlas-page") return AtlasAddress(json, type).Identity;
             if (type == "spine-assets") return SpineResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address"))).Identity;
             if (type == "spine") return ResourceIdentity.Spine(Required(json, "key"), Required(json, "jsonKey"));
-            if (type != "texture") throw new InvalidDataException("Target type must be texture, spine or spine-assets.");
+            if (type != "texture") throw new InvalidDataException("Target type must be texture, spine, spine-assets, atlas-region or atlas-page.");
             string loader = Required(json, "loader").ToLowerInvariant();
             if (loader == "pxl") return PxlResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address"))).Identity;
             if (loader == "mti")
@@ -59,6 +60,14 @@ namespace AICResourceKit.Contracts
         internal static T ReadTarget<T>(Dictionary<string, object> json) where T : ResourceTarget, new()
         {
             var target = new T { Type = Required(json, "type").ToLowerInvariant() };
+            if (target.Type == "atlas-region" || target.Type == "atlas-page")
+            {
+                if (json.Keys.Any(key => key != "type" && key != "address" && key != "image"))
+                    throw new InvalidDataException("Atlas targets accept type, address and image only.");
+                target.AtlasAddress = AtlasAddress(json, target.Type);
+                target.Image = Required(json, "image");
+                return target;
+            }
             if (target.Type == "texture")
             {
                 target.Loader = Required(json, "loader").ToLowerInvariant();
@@ -80,7 +89,7 @@ namespace AICResourceKit.Contracts
                 else throw new InvalidDataException("Texture loader must be mti, resources or pxl.");
                 return target;
             }
-            if (target.Type != "spine" && target.Type != "spine-assets") throw new InvalidDataException("Target type must be texture, spine or spine-assets.");
+            if (target.Type != "spine" && target.Type != "spine-assets") throw new InvalidDataException("Target type must be texture, spine, spine-assets, atlas-region or atlas-page.");
             if (target.Type == "spine-assets")
             {
                 target.SpineAddress = SpineResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address")));
@@ -138,6 +147,13 @@ namespace AICResourceKit.Contracts
                 && !HasDisplay(target.Display) && target.Dirt == null)
                 throw new InvalidDataException("Spine target does not replace anything.");
             return target;
+        }
+
+        private static AtlasResourceAddress AtlasAddress(Dictionary<string, object> json, string type)
+        {
+            var address = AtlasResourceAddress.Parse(ContractValue.Object(ContractValue.Get(json, "address")));
+            if (address.Kind != type) throw new InvalidDataException("Atlas target type and address kind must match.");
+            return address;
         }
 
         private static void ReadPages(Dictionary<string, object> json, ResourceTarget target)

@@ -58,6 +58,14 @@ namespace AICResourceKit.Patches.ReplaceTexture
         internal IEnumerable<ReplacementTarget> PxlTargets(string assetKey, string textKey) => targets
             .Where(target => target.Loader == "pxl" && target.PxlAddress.AssetKey == assetKey && target.PxlAddress.TextKey == textKey);
 
+        internal IEnumerable<ReplacementTarget> AtlasTargets(AtlasResourceAddress address) => targets
+            .Where(target => target.AtlasAddress != null && target.AtlasAddress.SameAtlas(address))
+            .GroupBy(target => target.Identity).Select(group => group.Last());
+
+        internal bool HasSpinePageOverride(AtlasResourceAddress address) => targets.Any(target => target.SpineAddress != null
+            && address.MatchesSpine(target.SpineAddress)
+            && (target.ImagePath != null || target.PagePaths.Count > 0 || target.AtlasPath != null));
+
         internal bool Invalid(string identity) => invalid.Contains(identity);
         internal List<ReplacementTarget> NewlyEnabledPortraits(ReplacementSelection previous) => targets
             .Where(target => target.Type == "spine" && !Invalid(target.Identity)

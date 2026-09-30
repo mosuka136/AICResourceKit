@@ -251,14 +251,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         internal static void ValidateImage(byte[] bytes, Atlas atlas, AtlasPage page)
         {
-            byte[] signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
-            if (bytes.Length < 33 || !bytes.Take(8).SequenceEqual(signature)
-                || bytes[12] != 73 || bytes[13] != 72 || bytes[14] != 68 || bytes[15] != 82)
-                throw new InvalidDataException("Expected PNG with IHDR.");
-            int width = ReadInt(bytes, 16), height = ReadInt(bytes, 20);
-            if (width <= 0 || height <= 0 || page.width != width || page.height != height)
-                throw new InvalidDataException("PNG dimensions do not match atlas page: " + page.name);
-            if (page.pma) throw new InvalidDataException("Export straight-alpha PNG (PMA is unsupported).");
+            ValidatePageImage(bytes, page);
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (var region in atlas.Regions.Where(region => ReferenceEquals(region.page, page)))
             {
@@ -268,10 +261,22 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 int h = region.height;
                 if (region.degrees != 0 && region.degrees != 90) throw new InvalidDataException("Unsupported atlas rotation.");
                 if (region.x < 0 || region.y < 0 || w <= 0 || h <= 0
-                    || (long)region.x + w > width || (long)region.y + h > height
+                    || (long)region.x + w > page.width || (long)region.y + h > page.height
                     || region.originalWidth <= 0 || region.originalHeight <= 0)
                     throw new InvalidDataException("Invalid atlas bounds: " + region.name);
             }
+        }
+
+        internal static void ValidatePageImage(byte[] bytes, AtlasPage page)
+        {
+            byte[] signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
+            if (bytes.Length < 33 || !bytes.Take(8).SequenceEqual(signature)
+                || bytes[12] != 73 || bytes[13] != 72 || bytes[14] != 68 || bytes[15] != 82)
+                throw new InvalidDataException("Expected PNG with IHDR.");
+            int width = ReadInt(bytes, 16), height = ReadInt(bytes, 20);
+            if (width <= 0 || height <= 0 || page.width != width || page.height != height)
+                throw new InvalidDataException("PNG dimensions do not match atlas page: " + page.name);
+            if (page.pma) throw new InvalidDataException("Export straight-alpha PNG (PMA is unsupported).");
         }
 
         private static int ReadInt(byte[] bytes, int offset)

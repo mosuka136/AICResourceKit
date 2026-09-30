@@ -6,13 +6,13 @@ using Object = UnityEngine.Object;
 namespace AICResourceKit.Patches.ReplaceTexture
 {
     /// <summary>保留纹理对象引用，更新所有共享材质和图层；只保存停用所需的原像素。</summary>
-    internal sealed class PxlTextureContents : IDisposable
+    internal sealed class SharedTextureContents : IDisposable
     {
         private readonly Texture texture;
         private readonly bool keepUnreadable;
         private Texture2D original;
 
-        internal PxlTextureContents(Texture texture)
+        internal SharedTextureContents(Texture texture)
         {
             this.texture = texture;
             keepUnreadable = texture is Texture2D image && !image.isReadable;
@@ -25,13 +25,13 @@ namespace AICResourceKit.Patches.ReplaceTexture
             {
                 if (!candidate.LoadImage(bytes)) throw new InvalidDataException("PNG decoding failed.");
                 if (candidate.width != texture.width || candidate.height != texture.height)
-                    throw new InvalidDataException("PXL replacement dimensions must match the whole original image/page.");
+                    throw new InvalidDataException("Texture replacement dimensions must match the whole original image/page.");
                 if (original == null) original = CaptureOriginal(texture);
                 if (texture is Texture2D destination)
                 {
                     // LoadImage 可以上传不可读纹理；Reinitialize/SetPixels 会被 Unity 拒绝。
                     if (!destination.LoadImage(bytes, keepUnreadable))
-                        throw new InvalidDataException("PXL texture upload failed.");
+                        throw new InvalidDataException("Texture upload failed.");
                 }
                 else Blit(candidate, (RenderTexture)texture);
             }
@@ -69,7 +69,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private static Texture2D ReadPixels(Texture source)
         {
             if (!(source is Texture2D) && !(source is RenderTexture))
-                throw new InvalidDataException("PXL replacement requires Texture2D or RenderTexture.");
+                throw new InvalidDataException("Texture replacement requires Texture2D or RenderTexture.");
             var copy = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false, !source.isDataSRGB);
             var previous = RenderTexture.active;
             var temporary = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32,
@@ -93,6 +93,12 @@ namespace AICResourceKit.Patches.ReplaceTexture
             finally { RenderTexture.active = previous; }
         }
 
+        internal Texture2D ReadOriginalPixels()
+        {
+            if (original == null) original = CaptureOriginal(texture);
+            return ReadPixels(original);
+        }
+
         internal void Restore()
         {
             if (texture == null || original == null) return;
@@ -105,7 +111,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 try
                 {
                     if (!((Texture2D)texture).LoadImage(pixels.EncodeToPNG(), keepUnreadable))
-                        throw new InvalidDataException("PXL original pixel restoration failed.");
+                        throw new InvalidDataException("Original pixel restoration failed.");
                 }
                 finally { Object.Destroy(pixels); }
             }

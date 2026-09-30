@@ -16,7 +16,7 @@
 | `Resources.Load` | v2 Texture2D / 未打包 Sprite | Sprite 保留原网格与 UV；打包/旋转布局拒绝。两个目录 Sprite 的实际消费入口仍未确认 |
 | PXL 内嵌、打包页和额外页 | v2 `loader: pxl` 图片与整页替换 | MTI 来源、原始 ID/I/P、外部槽位或打包页序号定位；共享纹理原位更新，逐页报告结果 |
 | 普通 `SpineViewer` / Fatal | v2 `type: spine-assets`，单页/多页 | 真实容器、atlas、JSON 定位；各查看器独立材质，使用[完整页映射](spine-viewer-replacement.md) |
-| PICT / EF_PICT | 本项只观察区域查找 | `SpvLoader.GetImage` 直接取 atlas 区域，能够使用默认骨架以外的图片 |
+| PICT / EF_PICT、独立 atlas | v2 `atlas-region` / `atlas-page` | 实际 atlas 来源和原 Texture2D；共享页像素更新，保留原区域与材质；见[图集说明](atlas-replacement.md) |
 | MPCC | 本项只观察解码器 | 已知编辑器读取器及 PXL 页组合机制；五个文件的游戏调用和角色归属待查 |
 | VideoClip | 本项只观察播放器状态 | 教程为 `Tuto_mp4/<clip>` → `FillBlockMovie`；地图效果为 `Effect_mp4/<clip>` → `M2UnstbMovie` |
 
@@ -40,7 +40,7 @@
 
 - `wplmode_` 位于 `mti_title_wpl.dat`，基线 ver030g 程序集未定位到对应 `LoadImage` 调用。通用匹配测试中的该键只验证身份隔离，不能证明这个入口已经执行；需继续检查标题分支与动态键。
 - `noel_bassrobe.pxls` 含内嵌图片，但不在本基线 `MTR.Anoel_pxls` 中，实际调用及加载条件待查。
-- `mgm_bun.pxls.bytes.texture_0` 的 Texture2D 依赖经过小游戏 PXL 路径，但同包 Sprite 的使用没有证据。`damage_backvoreenemy` Sprite 和 `.atlas` 同样保留待查，不伪造骨架 JSON。
+- `mgm_bun.pxls.bytes.texture_0` 的 Texture2D 依赖经过小游戏 PXL 路径，但同包 Sprite 的使用没有证据。`damage_backvoreenemy` Sprite 与独立 atlas 的自然游戏调用仍待确认；独立图集入口不要求或伪造骨架 JSON。
 - 主纹理加载不能证明 part、mask、混合页均已支持。`MTIOneImage.ReplaceExternalPngForPxl` 依赖包内对象数量，数量为 2 时通过 `_1` 加载额外图片；含 Sprite 的包尤其需要核对。
 - MPCC 的已知解码器由编辑器文件选择器调用，不能推断游戏会自动读取 `StreamingAssets/mobpcc`。五个文件继续保留独立待确认状态。
 - 80 组 PXL 外部主纹理键来自目录候选与 MTRX 通用公式。未逐项观察实际参数、异步到达和旧页消费者；使用时必须同时读取各组 `evidence` 和 `pendingReasons`。
@@ -79,6 +79,12 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 
 同一纹理可能有多个地址，诊断会逐个列出，`sharedAddresses` 表示其别名数量。逐项检查成功、失败与待到达状态，不能用一页成功概括整套 PXLS。P01 旧观察器输出保留；制作新包应使用带 `details.address` 的适配器记录。操作见 [PXL 说明](pxl-replacement.md)。
 
+## 图集区域与整页结果
+
+独立图集使用 `Atlas / ReplacementRuntime` 入口。`details.address` 可复制到对应 `atlas-region` / `atlas-page` 目标，`details.pageKey` 说明区域所在的页。`shared-page-bound` 表示原页纹理已绑定，`picture-region-bound` 表示 PICT 路径查询了区域；`shared-atlas-texture-updated` 表示上传完成。来源来自实际 MTI 文本或 Resources.Load，不从纹理名称推导。
+
+`invalid-address-or-layout` 表示区域/页或原布局不适用；`page-rejected` 表示尺寸、重叠或跨入口冲突等导致该页拒绝，原因见 `reason`。停用或失败时恢复原页像素。运行时会将新诊断会话中的已登记页列出，仍需实际查询才能看到具体 PICT 区域记录。
+
 ## 状态语义
 
 诊断 `reportVersion=1` 与资源包 `formatVersion` 无关。直接 MTI 图片使用既有 v2 身份；尚未接入替换的新观察地址仍为 `runtimeIdentity=null`，不提前定义新包类型。
@@ -114,3 +120,7 @@ ver030g 的 PXL 运行时验证覆盖 `PxlNoel/noel.pxls` 外部页、`PxlNoel/n
 P01 静态清单保留采集时的状态和计数，不自动同步后续实机验证。其他目标仍需在对应场景采集实际报告并检查画面；静态调查、方法签名与 `candidate-applied` 均不能独立证明画面正确。
 
 ver030g 的普通 Spine 运行时验证覆盖 `fatal_nusi_0/1` 的真实共享图集、同屏独立材质、首载与 JSON 切换，以及双页夹具的网格和页面像素。刷新保留轨道、队列、播放时间、皮肤和事件订阅；停用、共享查看器释放及坏页隔离通过。37 组主立绘 JSON 的骨骼/皮肤/事件数量及动画名称集合在原样合成后保持一致；`stand_battle.old` 独立经过 SvTexture 纹理与深度处理。该结果不等同于全部剧情、污渍和预览画面的逐场景验收；Resources 多页使用合成夹具验证。P01 机器清单保留原调查时的观察状态，后续能力以本节为准。
+
+ver030g 的图集运行时验证使用真实 `SpvLoader` 与 `FtSpecialDrawerPicture.drawTo`，覆盖 `noel_peeping__0000/0001/0002` 的直接绘制、90° 旋转区域、共享 Spine 纹理、保留网格/UV/材质/动画轨道、同页非目标像素、刷新、移除单个区域、冲突页隔离、停用恢复和释放。实际数据中这三个区域也有默认皮肤附件引用；验证的是绕过附件选择的 PICT 消费路径，不能把它们描述为“原图集中没有骨架引用”。完整剧情演出、遮罩切换和镜头仍未逐场景验收。
+
+独立图集验证加载了原 `damage_backvoreenemy.atlas` 和 Texture2D，通过真实 `SpineAtlasAsset.GetAtlas` 与页面材质完成整页替换、刷新和恢复，没有创建 SkeletonDataAsset 或假 JSON。其原图集包含 180° / 270° 区域，整页像素替换保留这些元数据，不套用候选骨架的旋转限制。这是显式加载原资源的运行时验证，仍未找到自然游戏调用场景；同包 Unity Sprite 的消费入口也未确认。Resources 来源解析已有契约覆盖，其实际场景未验收。

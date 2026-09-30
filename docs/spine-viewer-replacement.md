@@ -77,4 +77,4 @@
 
 坏候选会报告失败；仍获授权的已有候选可以继续显示。关闭时不会因为坏候选而保留未授权内容。替换骨架缺少正在播放或排队的动画时会拒绝更新，应通过兼容映射保留游戏所需的动画名。
 
-普通查看器允许 `display.skeletonScale`。主立绘专用的偏移、显示尺寸、`scaleMultiplier`、`rightShift` 和 `effects.dirt` 不适用于该入口。既有主立绘预览不会自动跳转到剧情骨架。独立 PICT/EF_PICT 区域与 atlas-only 替换属于后续入口，不由本适配器改写。
+普通查看器允许 `display.skeletonScale`。主立绘专用的偏移、显示尺寸、`scaleMultiplier`、`rightShift` 和 `effects.dirt` 不适用于该入口。既有主立绘预览不会自动跳转到剧情骨架。独立 PICT/EF_PICT 区域与 atlas-only 图片使用[图集替换入口](atlas-replacement.md)。同一图集同时启用该入口与本适配器的图片或 atlas 覆盖会被判为冲突；只改 JSON 且复用原页时可共享图集像素更新。
