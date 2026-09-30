@@ -1,5 +1,9 @@
 # AICResourceKit
 
+[![GitHub all releases](https://img.shields.io/github/downloads/mosuka136/AICResourceKit/total)](https://github.com/mosuka136/AICResourceKit/releases) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/mosuka136/AICResourceKit)](https://github.com/mosuka136/AICResourceKit/releases) ![platform](https://img.shields.io/badge/platform-Windows-lightgrey)
+
+中文 | [English](README_EN.md)
+
 Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Harmony 和 UnityModBase。
 
 支持 MTI、Unity Resources、PXL 图片与整页替换，主立绘 Spine 分段合成，普通剧情 Spine 多页和独立图集区域替换。资源包可排序、启停、刷新，并受敏感内容开关控制。附带立绘预览、资源状态与加载诊断、MPCC 依赖调查，以及命令行检查和加密工具。
@@ -26,18 +30,11 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 
 可安装清单为 `formatVersion: 2`，兼容 BEREENC v1 密文。Spine 使用 straight-alpha PNG 和 Spine 4.1 JSON；主立绘支持单页，普通剧情 Spine 支持显式多页。视频替换不受支持。编译能力见[capabilities.json](docs/resource-replacement/capabilities.json)，具体游戏地址应以实际加载报告为准。
 
-## 构建与测试
+## 支持的版本
 
-按[开发说明](docs/development.md)准备 `ReferenceLibrary/`，然后在仓库根目录执行：
-
-```powershell
-dotnet build AICResourceKit/AICResourceKit.csproj -c Debug -m:1 -nr:false
-dotnet test AICResourceKit.Test/AICResourceKit.Test.csproj -c Debug -m:1 -nr:false
-python tools/validate-contract-schema.py
-```
-
-主插件目标为 .NET Framework 4.7.2，测试和命令行工具为 .NET 8。插件产物位于 `AICResourceKit/bin/Debug/AICResourceKit.dll`；构建不会自动部署到游戏。
+- `Alice In Cradle`：`ver030g`
+- `BepInEx`：`v5.4.23.5`
 
 ## 许可证
 
-资源功能源自 BetterExperience，沿用 [LGPL-3.0](LICENSE.txt)。
+`AICResourceKit` 使用 `LGPL-3.0` 许可证，详见 `LICENSE.txt`。
