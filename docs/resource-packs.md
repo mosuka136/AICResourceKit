@@ -21,6 +21,8 @@ PXL 图片与整页使用 `loader: pxl`，示例与限制见 [PXL 替换说明](
 
 独立图集与 PICT 图片使用 `type: atlas-region` / `atlas-page`，仅声明实际 atlas 来源与 PNG，不提供骨架 JSON。区域、整页和共享冲突规则见[图集替换说明](atlas-replacement.md)。
 
+MPCC 文件是调色预设，不是图片包。其已确认的图片依赖使用 PXL 目标，调查方法见[MPCC 说明](mpcc-inspection.md)；不支持直接替换 `.mpcc.bytes`。
+
 不支持 Spine 二进制格式、主立绘多页 atlas、自定义情绪状态机、散装 PNG 和 v1 `.portrait.json`。
 
 ## 普通图片与 Sprite

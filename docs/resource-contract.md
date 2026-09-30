@@ -126,7 +126,7 @@ v2 目标的 `type` 和 `address.kind` 必须同时为 `atlas-region` 或同时�
 | `pxl-page` | 同一 PXL source + `storage=external,pageIndex`，或 `storage=packed,pageOrdinal,imageType` | 外部数组槽位与打包页序号不是同一标识；已通过 `loader: pxl` 接入 |
 | `video` | `assetKey` + `clipKey` | 已观察到的 MTI VideoClip 来源；P08 处理播放器与生命周期 |
 
-以上地址拒绝未声明字段和绝对路径。MPCC 当前只有内容 name/chr_name，尚未证明文件来源到实例的绑定；草案明确拒绝 `kind=mpcc`，P07 调查后再定义。来源不清楚的 Sprite 或 atlas 也不能仅从导出名称生成地址。
+以上地址拒绝未声明字段和绝对路径。P07 已确认 MPCC 文件为调色预设，可显式调查文件并输出已加载的 PXL 依赖。常规解码器没有文件路径，name/chr_name 不足以定义二进制替换身份；草案继续拒绝 `kind=mpcc`。图片依赖使用已有 `loader=pxl`，见[MPCC 说明](mpcc-inspection.md)。来源不清楚的 Sprite 或 atlas 也不能仅从导出名称生成地址。
 
 PXL 的 `imageId` 是 UInt32 十进制字符串；`imageId2` 是原始 double 的可往返十进制字符串，不能存成经过单精度解码的 JSON 数字。身份内部将其转换为 binary64 的 16 位大写十六进制位模式，正负零合并；非有限值拒绝。role 保留游戏 I/P 字段的真实含义，不预先把 P 宣称为所有资源的 mask。
 

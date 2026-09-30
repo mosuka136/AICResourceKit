@@ -17,7 +17,7 @@
 | PXL 内嵌、打包页和额外页 | v2 `loader: pxl` 图片与整页替换 | MTI 来源、原始 ID/I/P、外部槽位或打包页序号定位；共享纹理原位更新，逐页报告结果 |
 | 普通 `SpineViewer` / Fatal | v2 `type: spine-assets`，单页/多页 | 真实容器、atlas、JSON 定位；各查看器独立材质，使用[完整页映射](spine-viewer-replacement.md) |
 | PICT / EF_PICT、独立 atlas | v2 `atlas-region` / `atlas-page` | 实际 atlas 来源和原 Texture2D；共享页像素更新，保留原区域与材质；见[图集说明](atlas-replacement.md) |
-| MPCC | 本项只观察解码器 | 已知编辑器读取器及 PXL 页组合机制；五个文件的游戏调用和角色归属待查 |
+| MPCC | 原生读取报告、PCC 输入映射；图片复用 PXL | 五个文件为调色预设，其中一个为空；编辑器手动读取，无自动目录加载证据。见[MPCC 说明](mpcc-inspection.md) |
 | VideoClip | 本项只观察播放器状态 | 教程为 `Tuto_mp4/<clip>` → `FillBlockMovie`；地图效果为 `Effect_mp4/<clip>` → `M2UnstbMovie` |
 
 “只观察”不表示资源包可以使用相应新类型。观察器不更换资源、不触发剧情、不读取服装任务，不改变替换授权和优先级。静态清单不需要复制进游戏，运行时工具不依赖 wardrobe。
@@ -42,7 +42,7 @@
 - `noel_bassrobe.pxls` 含内嵌图片，但不在本基线 `MTR.Anoel_pxls` 中，实际调用及加载条件待查。
 - `mgm_bun.pxls.bytes.texture_0` 的 Texture2D 依赖经过小游戏 PXL 路径，但同包 Sprite 的使用没有证据。`damage_backvoreenemy` Sprite 与独立 atlas 的自然游戏调用仍待确认；独立图集入口不要求或伪造骨架 JSON。
 - 主纹理加载不能证明 part、mask、混合页均已支持。`MTIOneImage.ReplaceExternalPngForPxl` 依赖包内对象数量，数量为 2 时通过 `_1` 加载额外图片；含 Sprite 的包尤其需要核对。
-- MPCC 的已知解码器由编辑器文件选择器调用，不能推断游戏会自动读取 `StreamingAssets/mobpcc`。五个文件继续保留独立待确认状态。
+- MPCC 独立文件由编辑器文件选择器调用，默认选择目录是 persistentDataPath/mobpcc。五项原生解码、角色字段和图片依赖的当前结论见[逐项记录](resource-replacement/ver030g-mpcc-investigation.json)；仍无自动读取 StreamingAssets/mobpcc 的证据。P01 清单保留历史待查状态。
 - 80 组 PXL 外部主纹理键来自目录候选与 MTRX 通用公式。未逐项观察实际参数、异步到达和旧页消费者；使用时必须同时读取各组 `evidence` 和 `pendingReasons`。
 
 P03 对 `SceneTitleTemp.prepareMti` / `initTitleLogo`、`UiTitleDifficultyConfirm` 和 `MImage.Tx` 的源码复核确认：`key_noel`、`difficulty` 使用 `MTI_title` 容器，并将 `MImage.getMtr()` 的材质交给绘制器。`Tx` 赋值会同步改写这些缓存材质的主纹理。直接加载入口与单图容器分开登记，容器 `Dispose` / `UnloadAll` 前清理替换。
@@ -85,6 +85,12 @@ stand_battle;PxlNoel/noel.pxls;Tuto_mp4
 
 `invalid-address-or-layout` 表示区域/页或原布局不适用；`page-rejected` 表示尺寸、重叠或跨入口冲突等导致该页拒绝，原因见 `reason`。停用或失败时恢复原页像素。运行时会将新诊断会话中的已登记页列出，仍需实际查询才能看到具体 PICT 区域记录。
 
+## MPCC 文件与图片输入
+
+控制页可手动导出 `logs/mpcc-inspection.json`，无需开启持续诊断，步骤见[MPCC 说明](mpcc-inspection.md)。它列出实际文件、摘要、内部角色与部件；仅对已确认加载来源的 PXL 输出可安装地址。
+
+持续诊断的 `palette-read` 表示游戏解码调用，仍不带可靠文件路径；`inspection-decoded` 是报告工具主动读取，不能算自然游戏调用。`pcc-source-bound` 来自 `MobPCCContainer.AddChr`，列出实际角色输入槽位 0（原色）和 1（部件遮罩）的 PXL 地址与加载状态。生成后的调色 RenderTexture 是缓存结果，需要游戏重新应用调色才能消费已更新的输入。
+
 ## 状态语义
 
 诊断 `reportVersion=1` 与资源包 `formatVersion` 无关。直接 MTI 图片使用既有 v2 身份；尚未接入替换的新观察地址仍为 `runtimeIdentity=null`，不提前定义新包类型。
@@ -124,3 +130,7 @@ ver030g 的普通 Spine 运行时验证覆盖 `fatal_nusi_0/1` 的真实共享�
 ver030g 的图集运行时验证使用真实 `SpvLoader` 与 `FtSpecialDrawerPicture.drawTo`，覆盖 `noel_peeping__0000/0001/0002` 的直接绘制、90° 旋转区域、共享 Spine 纹理、保留网格/UV/材质/动画轨道、同页非目标像素、刷新、移除单个区域、冲突页隔离、停用恢复和释放。实际数据中这三个区域也有默认皮肤附件引用；验证的是绕过附件选择的 PICT 消费路径，不能把它们描述为“原图集中没有骨架引用”。完整剧情演出、遮罩切换和镜头仍未逐场景验收。
 
 独立图集验证加载了原 `damage_backvoreenemy.atlas` 和 Texture2D，通过真实 `SpineAtlasAsset.GetAtlas` 与页面材质完成整页替换、刷新和恢复，没有创建 SkeletonDataAsset 或假 JSON。其原图集包含 180° / 270° 区域，整页像素替换保留这些元数据，不套用候选骨架的旋转限制。这是显式加载原资源的运行时验证，仍未找到自然游戏调用场景；同包 Unity Sprite 的消费入口也未确认。Resources 来源解析已有契约覆盖，其实际场景未验收。
+
+ver030g 的 MPCC 验证使用游戏原生读取器成功解析全部五个附带文件，保留 0 / 2 / 9 / 7 / 8 个部件的实际结果；文件摘要在检查后未变化。报告覆盖当前已加载的 9 个 Noel PXL 来源与 `MapChars/sub_i.pxls`，地址来自真实加载记录，部件缺失和遮罩缺失按角色分别保留。显式加载不证明这些预设在常规剧情中自然读取。
+
+原生 PCC 使用 `noel__231022_013830` 和 `noel.pxls` 生成了像素发生变化的调色输出，没有写入主角动画消费者。v2 样例包使用 `sub_i` 的原色页，验证替换、修改 PNG 后刷新、停用恢复及原纹理引用不变。当前 `sub_i` 没有部位数据与遮罩，不能应用两个附带非空预设；报告不掩盖此限制。完整剧情画面、自动调色重算和预设二进制替换未验收或未提供。

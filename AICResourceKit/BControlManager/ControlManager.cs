@@ -34,6 +34,7 @@ namespace AICResourceKit.BControlManager
                 return;
 
             InitializePortrait();
+            InitializeResources();
 
             _initialized = true;
             BLog.Debug("Runtime control manager initialized.");

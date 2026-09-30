@@ -169,7 +169,7 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
         public void HookDefinitions_ResolveExactBaselineMethodsAndCompatibleCallbacks()
         {
             var hooks = ReplacementDiagnosticHooks.Definitions().ToArray();
-            Assert.Equal(15, hooks.Length);
+            Assert.Equal(16, hooks.Length);
             foreach (var hook in hooks)
             {
                 var method = hook.Resolve();

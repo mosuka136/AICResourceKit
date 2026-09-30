@@ -64,6 +64,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 "GetImage", new[] { typeof(string) }, nameof(AtlasRegion));
             yield return new ReplacementDiagnosticHook(typeof(MobPCCContainer), "readFromBytesFromFile",
                 new[] { typeof(ByteArray), typeof(SkltImage), typeof(PxlCharacter) }, nameof(MpccRead));
+            yield return new ReplacementDiagnosticHook(typeof(MobPCCContainer), "AddChr",
+                new[] { typeof(PxlCharacter), typeof(bool) }, nameof(MpccCharacterAdded));
             yield return new ReplacementDiagnosticHook(typeof(FillBlockMovie), "initMovie",
                 new[] { typeof(string), typeof(int), typeof(int), typeof(MTI) }, nameof(Movie));
             yield return new ReplacementDiagnosticHook(typeof(FillBlockMovie), "runIRD", new[] { typeof(float) }, nameof(Movie));
@@ -245,11 +247,28 @@ namespace AICResourceKit.Patches.ReplaceTexture
 
         private static void MpccRead(MobPCCContainer __instance, PxlCharacter Pcr)
         {
+            ReplacementDiagnosticRuntime.Guard(() =>
+            {
+                var details = MpccInspection.Describe(__instance);
+                details["origin"] = MpccInspection.InspectingFile == null ? "game-decoder" : "explicit-inspection";
+                details["file"] = MpccInspection.InspectingFile;
+                details["pxlBinding"] = ReplacementRuntime.DescribeMpccCharacter(Pcr);
+                details["imageCount"] = __instance.target_image_count;
+                ReplacementDiagnosticRuntime.Record(
+                    new ReplacementDiagnosticTarget("mpcc-decoded", __instance.chr_name,
+                        MpccInspection.InspectingFile ?? __instance.name, "SkltPalette"),
+                    "entry-hit", "XX.mobpxl.MobPCCContainer.readFromBytesFromFile(ByteArray,SkltImage,PxlCharacter)",
+                    MpccInspection.InspectingFile == null ? "palette-read" : "inspection-decoded",
+                    MpccInspection.InspectingFile == null ? "Decoder call has no verified file path." : null, details);
+            });
+        }
+
+        private static void MpccCharacterAdded(MobPCCContainer __instance, PxlCharacter Chr)
+        {
             ReplacementDiagnosticRuntime.Guard(() => ReplacementDiagnosticRuntime.Record(
-                new ReplacementDiagnosticTarget("mpcc-decoded", __instance.chr_name, __instance.name, "SkltPalette"),
-                "entry-hit", "XX.mobpxl.MobPCCContainer.readFromBytesFromFile(ByteArray,SkltImage,PxlCharacter)", "palette-read",
-                "The decoder receives bytes, not a file path; filename attribution remains unverified.",
-                new Dictionary<string, object> { ["pxlSource"] = Pcr?.external_png_header, ["imageCount"] = __instance.target_image_count }));
+                new ReplacementDiagnosticTarget("mpcc-pxl", __instance.chr_name, Chr?.title, "PxlCharacter"),
+                "entry-hit", "XX.mobpxl.MobPCCContainer.AddChr", "pcc-source-bound",
+                details: ReplacementRuntime.DescribeMpccCharacter(Chr)));
         }
 
         private static void Movie(object __instance, MethodBase __originalMethod)

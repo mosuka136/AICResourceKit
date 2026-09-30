@@ -52,6 +52,7 @@ python tools/validate-contract-schema.py
 | `SharedTextureContents` | PXL 与图集共用的原生 PNG 上传、共享纹理引用与原像素恢复 |
 | `ReplacementAtlasPatch` / `AtlasResourceAddress` / `AtlasEditLayout` | atlas 来源和消费者、独立区域/页地址、打包矩形与冲突检查 |
 | `ReplacementSpriteLayout` / `ReplacementResourceReleasePatch` | Sprite 几何兼容检查与创建、Resources 卸载转交 |
+| `MpccFileHeader` / `MpccInspection` | 小型版本头检查、调用游戏原生解码器导出文件及部件报告，不应用调色 |
 | `ReplacementDiagnostic*` | 可关闭的观察器与报告，不改变目标匹配 |
 | `PortraitControl*` / `PortraitReplacementPreview` | 主界面立绘控制、预览及会话状态 |
 | `AICResourceKit.ResourceEncryptor/` | 命令行参数、严格包解析、依赖检查与加密导出 |
@@ -67,6 +68,7 @@ python tools/validate-contract-schema.py
 | [ReplacementRuntime.SpineViewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineViewers.cs) | 普通 SpineViewer 登记、候选应用、刷新和释放 |
 | [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | 单图容器、直接图片的缓存记录、应用及释放 |
 | [ReplacementRuntime.Pxl.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Pxl.cs) | 图片/页登记、共享纹理选择、准备与释放 |
+| [ReplacementRuntime.Mpcc.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mpcc.cs) | 基于现有 PXL 登记输出 PCC 原色/遮罩输入映射，不控制调色缓存 |
 | [ReplacementRuntime.Atlas.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Atlas.cs) | 图集页登记、PICT 共享纹理合成、重叠隔离及释放 |
 | [ReplacementRuntime.Resources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Resources.cs) | Resources.Load 首载与刷新 |
 | [ReplacementRuntime.Textures.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Textures.cs) | 共用的纹理准备、上传节流、原位更新及原图恢复 |
@@ -85,6 +87,7 @@ python tools/validate-contract-schema.py
 - 普通查看器刷新沿用 AnimationState、TrackEntry、队列和事件订阅，重新映射动画及循环帧；不能用 clearAnim 重置剧情播放。主立绘仍走 SvTexture、污渍和预览的原流程。
 - 独立图集从真实文本来源绑定 SpineAtlasAsset，PICT 使用 SpvLoader 的实际页纹理；不要求骨架 JSON，不猜测容器键。按物理纹理合并不重叠区域，从原像素重新合成，保留 AtlasRegion、材质和共享纹理引用。坏页恢复原像素，其他页继续处理。
 - 图集与 PXL 共用 SharedTextureContents；区域矩形使用当前游戏 Atlas 读取器已旋转后的宽高，坐标从左上转换到 Unity 像素行。后台只读文件和校验元数据，解码与上传留在主线程。
+- MPCC 报告由控制页显式触发，使用原生读取器；逐文件隔离错误，空预设保持为空。输出区分主动调查和自然游戏解码；运行时 AddChr 的输入地址必须来自 PXL 登记，不能从预设文件名推导。报告不加载角色、不应用调色、不接管生成后的 RenderTexture。
 - Sprite 使用原整张纹理与原网格。打包、旋转或 UV 不能按原 rect/pivot/PPU 重建时明确拒绝，不能退化为看似成功的 FullRect 图片。
 - 清单先识别目标身份，再检查内容。身份重复使整个包无效；单个目标的字段或依赖出错可隔离，并保留其他有效目标。
 - 保留 v2 身份、包优先级、MTI null/空字符串语义和 Sensitive 开关行为。修改字段规则时同步更新 Schema、向量与契约说明。
