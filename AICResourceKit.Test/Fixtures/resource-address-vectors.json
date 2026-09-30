@@ -1,5 +1,4 @@
 {
-    "draftVersion": 1,
     "installable": false,
     "examples": [
         {
@@ -90,5 +89,6 @@
     },
     "unresolvedKinds": {
         "mpcc": "Source file to runtime object binding not established; names alone do not identify a replacement target."
-    }
+    },
+    "api": "ResourceAddressDraft"
 }

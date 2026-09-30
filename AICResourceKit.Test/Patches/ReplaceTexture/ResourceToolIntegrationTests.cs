@@ -9,18 +9,18 @@ using ToolEncryptor = ResourceEncryptor::AICResourceKit.ResourceEncryptor.PackEn
 
 namespace AICResourceKit.Test.Patches.ReplaceTexture
 {
-    public sealed class ResourceDeliveryTests
+    public sealed class ResourceToolIntegrationTests
     {
         [Fact]
-        public void Capabilities_MatchDeliveredContractAndDoNotClaimRuntimeVerification()
+        public void Capabilities_MatchPublishedContractAndDoNotClaimRuntimeVerification()
         {
             using var output = new StringWriter();
             using var error = new StringWriter();
             Assert.Equal(0, ToolCommand.Run(new[] { "capabilities" }, output, error));
             Assert.Equal("", error.ToString());
             Assert.Equal(PortraitJson.Serialize(ResourceCapabilities.Describe()), PortraitJson.Serialize(PortraitJson.Parse(output.ToString())));
-            string delivered = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "capabilities.json"));
-            Assert.Equal(PortraitJson.Serialize(ResourceCapabilities.Describe()), PortraitJson.Serialize(PortraitJson.Parse(delivered)));
+            string published = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "capabilities.json"));
+            Assert.Equal(PortraitJson.Serialize(ResourceCapabilities.Describe()), PortraitJson.Serialize(PortraitJson.Parse(published)));
             using var json = JsonDocument.Parse(output.ToString());
             var root = json.RootElement;
             Assert.Equal("stable", root.GetProperty("contractStatus").GetString());
@@ -92,21 +92,6 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
             Assert.Contains("multi/pack.replacement.json", error.ToString());
             Assert.Contains("targets[0] missing.png", error.ToString());
             pack.AssertNoOutput();
-        }
-
-        [Fact]
-        public void StandaloneTitleSample_UsesVerifiedAddressAndEncryptsWithoutSourceArt()
-        {
-            using var pack = new EncryptedPackFixture();
-            string sample = Path.Combine(AppContext.BaseDirectory, "Fixtures", "title-checker");
-            foreach (string file in Directory.GetFiles(sample)) pack.Write(Path.GetFileName(file), File.ReadAllBytes(file));
-            var target = Assert.Single(Assert.Single(pack.Discover().Packages).Targets);
-            Assert.Equal(ResourceIdentity.Mti("MTI_title", "key_noel"), target.Identity);
-            var png = ReplacementResourceIO.ReadBytes(target.ImagePath);
-            Assert.Equal(1280, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(16, 4)));
-            Assert.Equal(1520, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(20, 4)));
-            Assert.Equal(2, ToolEncryptor.Encrypt(pack.Input, pack.Output));
-            Assert.Empty(pack.Discover(root: pack.Output).Errors);
         }
 
         private const string MixedManifest = """

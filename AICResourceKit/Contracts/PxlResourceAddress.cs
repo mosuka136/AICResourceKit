@@ -25,7 +25,7 @@ namespace AICResourceKit.Contracts
             string kind = ContractValue.String(json, "kind");
             if (kind != "pxl-image" && kind != "pxl-page")
                 throw new InvalidDataException("PXL address kind must be pxl-image or pxl-page.");
-            // 沿用 P02 已验证的 ID 精度、来源边界与字段约束，运行时身份使用独立前缀。
+            // 复用独立地址校验的 ID 精度、来源边界与字段约束，运行时身份使用独立前缀。
             string identity = ResourceAddressDraft.IdentityOf(json);
             var source = ContractValue.Object(ContractValue.Get(json, "source"));
             var result = new PxlResourceAddress

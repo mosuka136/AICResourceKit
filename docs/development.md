@@ -1,8 +1,19 @@
 # 开发与维护说明
 
+## 仓库结构
+
+| 目录 | 内容 |
+| --- | --- |
+| `AICResourceKit/` | 游戏插件、无 Unity 依赖的契约和运行时适配器 |
+| `AICResourceKit.ResourceEncryptor/` | 检查、能力查询与加密命令行程序 |
+| `AICResourceKit.Test/` | 行为测试、合成资源和兼容性夹具 |
+| `docs/` | 按功能组织的使用指南、接口参考与维护规范 |
+| `docs/resource-replacement/` | 作者 Schema、公共测试向量和编译能力表 |
+| `tools/` | 仓库检查脚本 |
+
 ## 环境与引用
 
-主插件使用 .NET Framework 4.7.2；加密工具和 xUnit 测试使用 .NET 8。需要能够构建这些目标框架的 .NET SDK，以及 .NET Framework 4.7.2 引用程序集。Python 和 `jsonschema` 仅用于作者 Schema 检查，不是游戏插件依赖。
+主插件使用 .NET Framework 4.7.2；加密工具和 xUnit 测试使用 .NET 8。需要能够构建这些目标框架的 .NET SDK，以及 .NET Framework 4.7.2 引用程序集。Python 和 `jsonschema` 用于作者 Schema 检查。
 
 在仓库根目录创建 `ReferenceLibrary/`，从自己安装的目标版本游戏、BepInEx 和 UnityModBase 中复制以下 DLL。目录内容不纳入 Git。不要混用不同游戏版本的程序集。
 
@@ -30,15 +41,15 @@ python tools/validate-contract-schema.py
 
 仅修改文档时检查链接、示例和文件格式即可，无需重复跑全部测试。修改清单或公共契约时，运行相关现有测试和 Schema 向量；涉及运行时拆分等跨模块重构时，运行完整现有测试。若还没有安装 `jsonschema`，执行 `python -m pip install jsonschema`。
 
-日常开发使用 Debug。构建不会自动部署，产物为 `AICResourceKit/bin/Debug/AICResourceKit.dll`。不要对可能被游戏符号链接引用的 Release 产物做日常试验；游戏部署属于单独的验证步骤。
+日常开发使用 Release。构建不会自动部署，产物为 `AICResourceKit/bin/Release/AICResourceKit.dll`。
 
-进行游戏验证前，退出游戏并检查安装目录内 `AICResourceKit.dll` 是普通文件还是符号链接。普通文件需要复制本次构建产物；符号链接需要确认其目标与本次构建配置一致。若部署明确使用 Release，则在部署步骤构建 `dotnet build AICResourceKit/AICResourceKit.csproj -c Release -m:1 -nr:false`。重新启动后再采集诊断，不能用旧进程或旧报告判断新代码是否生效。
+进行游戏验证前，退出游戏并检查安装目录内 `AICResourceKit.dll` 是普通文件还是符号链接。普通文件需要复制本次构建产物；符号链接需要确认其目标与本次构建配置一致。
 
 ## 模块职责
 
 | 模块 | 职责 |
 | --- | --- |
-| `AICResourceKit/Contracts/` | 无 Unity 依赖的 v2 字段语义、目标身份、声明依赖及地址草案；由插件和工具链接编译 |
+| `AICResourceKit/Contracts/` | 无 Unity 依赖的 v2 字段语义、目标身份、声明依赖及独立地址校验；由插件和工具链接编译 |
 | `ReplacementCatalog` | 扫描清单、解析单个包、检查文件依赖和同步配置行 |
 | `ReplacementStatus` | 无 Unity 依赖的状态判定与清单问题分类 |
 | `ReplacementSelection` | 在目录快照上处理包顺序、目标选择与授权，不读取磁盘 |
@@ -108,13 +119,15 @@ python tools/validate-contract-schema.py
 
 涉及 Unity 加载或显示的修改，自动测试之后还需使用一个目标包在游戏中检查加载、刷新、关闭和画面。尚未进行游戏验证时，明确记录这一限制，不以静态方法签名测试代替实际结果。
 
-## 版本与阶段交付
+## 版本与能力维护
 
-插件版本和程序集版本统一维护在 `Contracts/ResourceCapabilities.cs`。可安装规则由 `ContractVersion` 声明，清单仍独立使用 v2。版本或能力变化时，从已构建工具重新生成 `docs/resource-replacement/capabilities.json`，保留 UTF-8/CRLF；`ResourceDeliveryTests` 检查插件、工具和签入文件一致。
+插件版本和程序集版本统一维护在 `Contracts/ResourceCapabilities.cs`。可安装规则由 `ContractVersion` 声明，清单仍独立使用 v2。版本或能力变化时，从已构建工具重新生成 `docs/resource-replacement/capabilities.json`，保留 UTF-8/CRLF；`ResourceToolIntegrationTests` 检查插件、工具和签入文件一致。
 
-`ResourceDeliveryTests` 还覆盖混合类型、共享依赖、多页、历史 `.old` 身份、明文/密文往返和独立标题样例。沿用已有加密失败清理与往返检查，不新增备份或回滚框架。`inspect` 只是静态文件检查，不能称为游戏验证。
+`ResourceToolIntegrationTests` 还覆盖混合类型、共享依赖、多页、历史 `.old` 身份和明文/密文往返。沿用已有加密失败清理与往返检查，不新增备份或回滚框架。`inspect` 只是静态文件检查，不能称为游戏验证。
 
-维护[第一阶段交付](phase-one-delivery.md)及机器验证记录时，分开记录自动测试、真实游戏入口、原生对象夹具和自然场景画面。原始日志和游戏素材保留在本地，交付记录不复制机器绝对路径。
+公共版本、接口或基线变化时，同步更新[兼容性说明](compatibility.md)、[资源契约](resource-contract.md)和[工具集成](integration.md)。区分真实游戏入口、原生对象夹具和自然场景画面；正式文档保留可复用的行为与限制，原始调查材料和运行日志留在本地。
+
+更新能力表时先构建命令行工具，执行 `capabilities` 并保存其纯 JSON 输出；不要把构建日志写入 JSON。操作与命令见[命令行说明](cli.md)。更新版本后运行相关契约与工具集成测试，再按部署说明检查真实加载的 DLL。
 
 ## 文档维护
 
@@ -124,11 +137,12 @@ python tools/validate-contract-schema.py
 | --- | --- |
 | 安装、配置、热键、操作步骤 | [使用说明](usage.md)，必要时更新根 README |
 | 资源包字段、依赖或兼容规则 | [资源包参考](resource-packs.md)、[资源契约](resource-contract.md)、Schema 与向量 |
-| 新命令或公共 API | [使用说明](usage.md)中的可运行示例 |
-| 诊断字段、入口或已验证能力 | [诊断说明](diagnostics.md)及对应调查记录 |
+| 命令与退出码 | [命令行工具](cli.md) |
+| 公共 API 与报告集成 | [工具集成](integration.md)中的可运行示例 |
+| 诊断字段与报告 | [诊断说明](diagnostics.md)、[资源状态](resource-status.md)或[MPCC 说明](mpcc-inspection.md) |
 | 构建方式或模块职责 | 本文 |
-| 计划进展或仍未实现的能力 | [资源工具计划](planning/noel-resource-tools.md)，与已支持功能分开 |
+| 支持范围、游戏基线或已知限制 | [兼容性说明](compatibility.md)与机器能力表 |
 
-正文描述当前可执行的操作、参数、结果和限制；不保留对话、交付过程或临时测试日志。命令从仓库根目录执行，示例避免写死开发者的本机路径，文档链接使用仓库内相对路径。更名时更新入口和交叉引用。
+正文描述当前可执行的操作、参数、结果和限制；不保留对话、实施进度或临时测试日志。命令从仓库根目录执行，示例避免写死开发者的本机路径，文档链接使用仓库内相对路径。更名时更新入口和交叉引用。
 
 提交修改前，检查涉及的示例、链接和 UTF-8／空格缩进／CRLF 格式。项目 `.editorconfig` 提供默认格式；保留未修改代码的原有风格，避免全仓库格式化。正式文档由 Git 跟踪，与代码一起评审。

@@ -361,8 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/.codetesting
-/.github
 
 # Ignore ReferenceLibrary folder
 /ReferenceLibrary
@@ -370,4 +368,6 @@ FodyWeavers.xsd
 # Local agent and investigation artifacts
 .github/
 .zcode/
-/docs/local/
+/.codetesting
+/.github
+AGENTS.md

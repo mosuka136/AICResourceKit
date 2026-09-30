@@ -29,10 +29,8 @@
 
   <ItemGroup>
     <None Include="..\docs\resource-replacement\capabilities.json" Link="Fixtures\capabilities.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\examples\title-checker\*" Link="Fixtures\title-checker\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\docs\resource-replacement\ver030g-investigation.json" Link="Fixtures\ver030g-investigation.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\docs\resource-replacement\contract-vectors.json" Link="Fixtures\contract-vectors.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\docs\resource-replacement\address-draft.examples.json" Link="Fixtures\address-draft.examples.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/resource-address-vectors.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
 # 资源包参考
 
-本文说明 AICResourceKit v2 资源包的 Spine 分段替换、兼容映射、显示参数、合成和加密规则。安装、配置、清单校验与公共 API 示例见[使用说明](usage.md)；普通纹理的定位规则见[资源契约](resource-contract.md)。
+本文说明 AICResourceKit v2 资源包的 Spine 分段替换、兼容映射、显示参数、合成和加密规则。安装和配置见[使用说明](usage.md)，清单校验见[命令行工具](cli.md)，公共 API 见[工具集成](integration.md)；普通纹理的定位规则见[资源契约](resource-contract.md)。
 
-开发调查可使用默认关闭的[资源加载诊断工具](diagnostics.md)，按目标导出实际入口与候选结果。能力草表区分代码证据和游戏验证，不改变本文的包格式与支持范围。
+开发调查可使用默认关闭的[资源加载诊断工具](diagnostics.md)，按目标导出实际入口与候选结果。支持范围与基线限制见[兼容性说明](compatibility.md)。
 
 ## 主立绘 Spine 支持范围
 
@@ -27,7 +27,7 @@ MPCC 文件是调色预设，不是图片包。其已确认的图片依赖使用
 
 ## 普通图片与 Sprite
 
-MTI 直接图片与单图容器按 `assetKey + imageKey` 定位，Resources 按 `path + objectType` 定位，均使用 v2 `type=texture`。清单示例及首载、刷新操作见[使用说明第 2.5、2.6 节](usage.md)。
+MTI 直接图片与单图容器按 `assetKey + imageKey` 定位，Resources 按 `path + objectType` 定位，均使用 v2 `type=texture`。清单示例及首载、刷新操作见[MTI 图片](usage.md#替换标题中的直接-mti-图片)与[Resources Sprite](usage.md#替换-resources-sprite)示例。
 
 候选 PNG 必须与原始整张纹理同尺寸。未打包 Sprite 保留逻辑 rect、pivot、border、PPU 和原顶点/三角形，检查 UV 后再创建；打包或旋转布局当前不支持。Sprite 裁片尺寸不等于原纹理尺寸，不能仅按导出的透明边界重新创建 FullRect Sprite。
 
@@ -76,28 +76,11 @@ v2 清单、PNG、atlas 和 Spine JSON 均支持明文、密文及混合加载�
 
 ### 作者制作工具
 
-作者机器安装 .NET 8 SDK 后，在仓库根目录运行：
+使用 [命令行工具](cli.md)的 `inspect` 检查依赖，`encrypt` 导出密文。输入为完整资源根目录，清单和依赖必须同属普通树或 `Sensitive/`；共享文件去重，未引用工程文件不导出。输出目录必须尚不存在，且不能与输入重叠。
 
-```powershell
-dotnet run --project AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEncryptor.csproj -- encrypt --input "D:/Assets/ReplaceTexture" --output "D:/Assets/EncryptedReplaceTexture"
-```
+明文、密文和混合输入遵循相同的清单与路径规则。已有 BEREENC v1 密文可直接使用；再次导出时先解码再加密，不嵌套封装。工具验证 PNG 文件头、JSON 可解析性和 atlas 非空，游戏尺寸、布局与显示仍需实际检查。
 
-也可以先构建再执行：
-
-```powershell
-dotnet build AICResourceKit.ResourceEncryptor/AICResourceKit.ResourceEncryptor.csproj -c Debug -m:1 -nr:false
-dotnet AICResourceKit.ResourceEncryptor/bin/Debug/net8.0/AICResourceKit.ResourceEncryptor.dll encrypt --input "D:/Assets/ReplaceTexture" --output "D:/Assets/EncryptedReplaceTexture"
-```
-
-- 输入为资源根目录；`Sensitive` 必须位于该根目录下，才能按游戏相同的边界规则验证。
-- 输出目录必须不存在，其父目录必须已存在；输入与输出不能相同或互相包含。文件、目录及其祖先不能使用链接或 junction。
-- 工具扫描全部 v2 `.replacement.json` 清单，只输出清单及其 `image`、`pages[].image`、`atlas`、`spine.json` 引用的文件。共享依赖去重，保留相对路径；未引用的工程文件、图片等不输出。
-- 支持明文、密文或混合输入。密文输入先校验、解密，再以新随机 IV 加密，避免重复封装。源文件始终保留。
-- 先验证清单、路径、依赖和已有密文的完整性，再在输出父目录的临时目录中生成密文；逐文件回读并与验证阶段的明文摘要比较，全部通过才重命名为输出目录。失败会清理本次临时结果，输出目录不会出现半成品。
-- 工具检查资源格式和依赖，不代替游戏中的 Spine 合成、动画兼容及显示验收。
-- 退出码：`0` 成功，`1` 资源处理失败，`2` 命令参数错误。使用 `--help` 查看命令格式。
-
-将输出目录中的内容复制进游戏的 `ReplaceTexture`，保持子目录结构。替换同一资源包时覆盖原文件，不要同时安装具有相同 `id` 的明文和密文副本。只需部分加密时，可将输出中的指定文件覆盖到资源包对应位置，其余文件保持明文。
+工具使用临时输出目录逐文件校验往返内容，一致后发布；失败只清理自身临时输出。正常发布不建立额外备份或回滚目录。
 
 ### 二进制封装
 

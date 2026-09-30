@@ -7,7 +7,7 @@ using System.Text;
 
 namespace AICResourceKit.Contracts
 {
-    /// <summary>P02 地址草案。只校验地址及页映射，不注册运行时适配器，不是可安装的清单。</summary>
+    /// <summary>独立地址校验接口。只校验地址及页映射，不注册运行时适配器，不是可安装的清单。</summary>
     public static class ResourceAddressDraft
     {
         public const int DraftVersion = 1;

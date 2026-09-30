@@ -45,7 +45,7 @@ PCC 的 `AddChr` 使用外部槽位 0 作为原色、槽位 1 作为部件遮罩
 
 **ver030g 的 `sub_i` 预设不能直接套用到当前附带的角色数据。** 实机确认该角色只有原色页，没有 `APartsInfo` 和外部槽位 1；原生解码器在绑定部件时会报 `No Parts Data in this Character`。报告仍能读取预设、列出缺失部件，并提供原色页替换地址；它不会补造遮罩或修复原游戏数据。部分 Noel 动作文件也没有部位数据，应逐条查看结果。
 
-逐项摘要、部件和证据见[调查记录](resource-replacement/ver030g-mpcc-investigation.json)。原文件、图片及完整反编译源码不随项目发布。
+各部件和输入图片以当前游戏导出的报告为准。原文件、图片及完整反编译源码不随项目发布。
 
 已找到的文件调用链为 `MobGEditorContainer.loadPccPrompt` → 文件选择器 → `NKT.readSpecificFileBinary` → `MobPCCContainer.readFromBytesFromFile`。默认选择目录是 `Application.persistentDataPath/mobpcc`，与游戏附带的 StreamingAssets 目录不同；未发现自动扫描这五个文件的常规游戏调用。
 
@@ -79,7 +79,7 @@ PCC 的 `AddChr` 使用外部槽位 0 作为原色、槽位 1 作为部件遮罩
 }
 ```
 
-按[安装与启用步骤](usage.md#24-安装启用和排序)使用该包，修改 PNG 后按 `Ctrl+T`。它替换角色共用的原色页，对使用这张图的所有动作生效，不以 MPCC 文件名限定影响范围。停用后恢复原像素。不要同时启用同一物理纹理的旧 MTI 整图替换。
+按[安装与启用步骤](usage.md#安装启用和排序)使用该包，修改 PNG 后按 `Ctrl+T`。它替换角色共用的原色页，对使用这张图的所有动作生效，不以 MPCC 文件名限定影响范围。停用后恢复原像素。不要同时启用同一物理纹理的旧 MTI 整图替换。
 
 PCC 已经生成的 RenderTexture 是计算结果。刷新 PXL 输入不会自动重新运行调色或改写已经烘焙的结果；正在使用调色编辑器时，应在图片更新后重新应用预设或重新进入编辑流程。报告工具不接管编辑器状态，也不自动把调色应用到主角。
 
@@ -91,4 +91,4 @@ PCC 已经生成的 RenderTexture 是计算结果。刷新 PXL 输入不会自�
 - `mpcc-decoded / inspection-decoded`：报告工具主动调用读取器，`details.file` 为本次文件，不表示游戏自然命中。
 - `mpcc-pxl / pcc-source-bound`：PCC 实际调用 `AddChr`，记录其 PXL 来源和页面地址。
 
-持续诊断与手动报告用途不同；完整定义及实机验证范围见[诊断说明](diagnostics.md#验证范围)。原 MPCC 数据替换、自动预设加载及已烘焙结果的自动重算均不在当前支持范围内。
+持续诊断与手动报告用途不同；报告定义见[诊断说明](diagnostics.md)，支持边界见[兼容性说明](compatibility.md)。原 MPCC 数据替换、自动预设加载及已烘焙结果的自动重算均不在当前支持范围内。

@@ -106,9 +106,9 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
         }
 
         [Fact]
-        public void DraftExamples_ProduceSameAddressesInBothHostsButAreNotInstallablePackages()
+        public void AddressVectors_ProduceSameAddressesInBothHostsButAreNotInstallablePackages()
         {
-            using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "address-draft.examples.json")));
+            using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "resource-address-vectors.json")));
             foreach (var item in document.RootElement.GetProperty("examples").EnumerateArray())
             {
                 string json = item.GetProperty("address").GetRawText();
@@ -166,7 +166,7 @@ namespace AICResourceKit.Test.Patches.ReplaceTexture
         [InlineData("role", "mask")]
         [InlineData("instanceId", "123")]
         [InlineData("sourceObjectId", "exported-object")]
-        [InlineData("taskId", "wardrobe-job")]
+        [InlineData("unknownField", "example-value")]
         public void DraftPxl_RejectsInvalidOrUnrelatedIdentifiers(string field, string value)
         {
             var address = Pxl();
