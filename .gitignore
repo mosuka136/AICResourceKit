@@ -371,3 +371,4 @@ FodyWeavers.xsd
 /.codetesting
 /.github
 AGENTS.md
+.agents/

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using UnityEngine;
 using XX;
 using Object = UnityEngine.Object;
@@ -30,6 +31,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
             internal ReplacementWork<PreparedSpine> Pending;
             internal SkeletonDataAsset PendingOriginal;
             internal float PendingSince;
+            // 切换姿态或状态时暂存的非当前组合，供同一次绘制复用。
+            internal readonly PortraitSpineVariants<SpineBundle> Variants = new PortraitSpineVariants<SpineBundle>(2);
         }
 
         private static readonly Dictionary<BetobetoManager.SvTexture, SpineState> spineStates =
@@ -79,6 +82,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
         {
             if (!spineStates.TryGetValue(texture, out var state)) spineStates.Add(texture, state = new SpineState());
             var context = PortraitContextFor(texture, switching);
+            // 原版选轨期间的层不含条件目标；组合由 animRandomize 收尾时在同一次绘制中决定。
+            if (context != null && context.Collecting) return false;
             var layers = ActiveLayers(SpineIdentity(texture.key, key))
                 .Where(layer => layer.PortraitSelection == null || (context != null && context.Matches(layer))).ToList();
             bool layersChanged = !state.SelectedLayers.SequenceEqual(layers);
@@ -124,19 +129,11 @@ namespace AICResourceKit.Patches.ReplaceTexture
                     }
                     if (state.Pending == null)
                     {
-                        texture.MtiText.addLoadKey("_SV");
-                        texture.MtiImage0.addLoadKey("_SV", false);
-                        SpineViewer.prepareAtlasAssetsS(texture.MtiText, out var originalAtlas, out var originalData, key);
+                        var prepare = SpinePreparation(texture, key, layers, out var originalData);
                         state.PendingOriginal = originalData;
-                        string originalJson = originalData.skeletonJSON.text;
-                        string originalAtlasText = originalAtlas.atlasFile.text;
-                        float originalScale = originalData.scale;
-                        string root = PatchInfo.ReplaceImagePath, sensitive = PatchInfo.ReplaceSensitiveImagePath;
-                        bool allow = selection.AllowSensitive;
                         state.PendingKey = key;
                         state.PendingSince = Time.unscaledTime;
-                        state.Pending = new ReplacementWork<PreparedSpine>(token => ReplacementPreparation.Spine(
-                            originalJson, originalAtlasText, originalScale, layers, root, sensitive, allow, token));
+                        state.Pending = new ReplacementWork<PreparedSpine>(prepare);
                         ReplacementDiagnosticRuntime.Spine(texture.key, key, "candidate-pending", "preparing");
                         state.Attempt = revision;
                     }
@@ -185,7 +182,24 @@ namespace AICResourceKit.Patches.ReplaceTexture
             return InstallSpine(texture, state, key, candidate) || restored;
         }
 
-        private static bool InstallSpine(BetobetoManager.SvTexture texture, SpineState state, string key, SpineBundle candidate)
+        // 读取原版骨架和 atlas 文本作为组合输入；返回的委托只操作托管数据，可在后台或主线程执行。
+        private static Func<CancellationToken, PreparedSpine> SpinePreparation(BetobetoManager.SvTexture texture, string key,
+            List<ReplacementTarget> layers, out SkeletonDataAsset original)
+        {
+            texture.MtiText.addLoadKey("_SV");
+            texture.MtiImage0.addLoadKey("_SV", false);
+            SpineViewer.prepareAtlasAssetsS(texture.MtiText, out var originalAtlas, out original, key);
+            string originalJson = original.skeletonJSON.text;
+            string originalAtlasText = originalAtlas.atlasFile.text;
+            float originalScale = original.scale;
+            string root = PatchInfo.ReplaceImagePath, sensitive = PatchInfo.ReplaceSensitiveImagePath;
+            bool allow = selection.AllowSensitive;
+            return token => ReplacementPreparation.Spine(
+                originalJson, originalAtlasText, originalScale, layers, root, sensitive, allow, token);
+        }
+
+        private static bool InstallSpine(BetobetoManager.SvTexture texture, SpineState state, string key, SpineBundle candidate,
+            bool keepOld = false)
         {
             var old = state.Current;
             state.Attempt = revision;
@@ -196,16 +210,35 @@ namespace AICResourceKit.Patches.ReplaceTexture
             if (state.Preview != null)
             {
                 ForgetReserved(texture, old);
-                if (old != null) retired.Add(old);
+                if (old != null && !keepOld) retired.Add(old);
                 return false;
             }
             RebindShown(texture, state, old);
             ReplacementDiagnosticRuntime.Spine(texture.key, key, candidate == null ? "restored" : "candidate-pending",
                 candidate == null ? "original-restored" : "composition-installed-awaiting-bind");
-            if (old != null) retired.Add(old);
+            if (old != null && !keepOld) retired.Add(old);
             BLog.Info(candidate == null ? "Spine replacement restored: " + texture.key
                 : "Spine replacement activated: " + string.Join(" + ", candidate.Sources.Select(source => source.Id)));
             return true;
+        }
+
+        // 临时恢复原版供游戏选轨；当前组合暂存，同一次绘制命中相同层时直接复用。
+        private static void ParkSpine(BetobetoManager.SvTexture texture, SpineState state, string key)
+        {
+            var old = state.Current;
+            if (old == null) return;
+            InstallSpine(texture, state, key, null, true);
+            ParkVariant(state, old);
+        }
+
+        private static void ParkVariant(SpineState state, SpineBundle bundle)
+        {
+            foreach (var released in state.Variants.Park(bundle.Layers, bundle)) retired.Add(released);
+        }
+
+        private static void RetireVariants(SpineState state)
+        {
+            foreach (var released in state.Variants.Clear()) retired.Add(released);
         }
 
         private static void RebindShown(BetobetoManager.SvTexture texture, SpineState state, SpineBundle old)
@@ -265,6 +298,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             ForgetReserved(texture, state.Current);
             if (state.Current != null) retired.Add(state.Current);
             if (state.Preview != null) retired.Add(state.Preview);
+            RetireVariants(state);
             spineStates.Remove(texture);
             depth.SetValue(texture, null);
             Collect();
@@ -297,6 +331,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 else
                 {
                     CancelSpinePreparation(state);
+                    RetireVariants(state);
                     state.Attempt = -1;
                 }
             }

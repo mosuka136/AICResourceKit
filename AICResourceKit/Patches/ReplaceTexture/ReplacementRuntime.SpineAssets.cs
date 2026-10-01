@@ -20,6 +20,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
         private sealed class SpineBundle : IDisposable
         {
             internal readonly List<ReplacementPackage> Sources = new List<ReplacementPackage>();
+            internal List<ReplacementTarget> Layers = new List<ReplacementTarget>();
             internal Texture Image;
             internal bool OwnImage;
             private MTIOneImage sourceImage;
@@ -80,6 +81,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
             {
                 foreach (var layer in layers) ValidateCurrent(layer);
                 foreach (var source in layers.Select(layer => layer.Owner).Distinct()) bundle.Sources.Add(source);
+                bundle.Layers = layers.ToList();
                 string atlasText = prepared.AtlasText;
                 var metadataAtlas = prepared.Atlas;
                 string imagePath = LastPath(layers, layer => layer.ImagePath);

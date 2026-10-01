@@ -67,6 +67,7 @@ python tools/validate-contract-schema.py
 | `MpccFileHeader` / `MpccInspection` | 小型版本头检查、调用游戏原生解码器导出文件及部件报告，不应用调色 |
 | `ReplacementDiagnostic*` | 可关闭的观察器与报告，不改变目标匹配 |
 | `PortraitControl*` / `PortraitReplacementPreview` | 主界面立绘控制、预览及会话状态 |
+| `PortraitSpineVariants` | 主立绘每个 SvTexture 的非当前组合缓存与同步准备失败记录，不创建 Unity 对象 |
 | `ResourceCapabilities` | 插件版本、稳定契约版本与编译能力；工具和状态报告共用 |
 | `PackInventory` | 严格包解析、共享依赖去重、文件格式和路径检查，输出可移植的依赖清单 |
 | `PackEncryptor` / `Program` | 复用依赖清单导出密文；提供 inspect、capabilities、encrypt CLI |
@@ -84,7 +85,7 @@ python tools/validate-contract-schema.py
 | [ReplacementRuntime.SpineViewers.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.SpineViewers.cs) | 普通 SpineViewer 登记、候选应用、刷新和释放 |
 | [ReplacementRuntime.Mti.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mti.cs) | 单图容器、直接图片的缓存记录、应用及释放 |
 | [ReplacementRuntime.Pxl.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Pxl.cs) | 图片/页登记、共享纹理选择、准备与释放 |
-| [ReplacementRuntime.PortraitSelection.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.PortraitSelection.cs) | 主界面姿态/状态条件、Spine 原版轨道选择与 PXL 私有材质绑定 |
+| [ReplacementRuntime.PortraitSelection.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.PortraitSelection.cs) | 主界面姿态/状态条件、Spine 原版轨道选择、切换时同次绘制绑定组合与 PXL 私有材质绑定 |
 | [ReplacementRuntime.Mpcc.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Mpcc.cs) | 基于现有 PXL 登记输出 PCC 原色/遮罩输入映射，不控制调色缓存 |
 | [ReplacementRuntime.Atlas.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Atlas.cs) | 图集页登记、PICT 共享纹理合成、重叠隔离及释放 |
 | [ReplacementRuntime.Resources.cs](../AICResourceKit/Patches/ReplaceTexture/ReplacementRuntime.Resources.cs) | Resources.Load 首载与刷新 |
@@ -103,6 +104,7 @@ python tools/validate-contract-schema.py
 - 普通 SpineViewer 在真实 prepareAtlasAssetsS 入口记录原始来源，在 prepare/attachPreload 时绑定消费者。不得改写 MTISpine 共享缓存；页面材质按查看器独立创建，保留模板和混合设置。
 - 普通查看器刷新沿用 AnimationState、TrackEntry、队列和事件订阅，重新映射动画及循环帧；不能用 clearAnim 重置剧情播放。主立绘仍走 SvTexture、污渍和预览的原流程。
 - 条件立绘预览必须先匹配真实资源地址、姿态、基础动画和状态。Spine 先让游戏选出完整轨道与皮肤，再在同次绘制中校验并绑定候选；PXL 仅临时绑定当前立绘的私有图片。当前实际动作和状态已匹配新包时跳过预览。计时从实际显示开始；恢复也先准备原姿态的正常顺序组合，在同次绘制中重绑完整轨道与皮肤。资源重绑不重复强制应用控制页锁定姿态，以免闪回原版或重启动画。
+- 主立绘切换（含首次显示）在 `animRandomize` 收尾的同次绘制中决定组合：原版先选轨，期间不启动后台准备；随后复用当前组合、缓存组合或在主线程同步准备，校验轨道和皮肤后重绑，不先显示原版。每个 SvTexture 最多缓存 2 份非当前组合，选择变化、刷新、停用和 `releaseAtlasData` 时释放；同步失败的层组合在本轮选择内不重试。扫描或配置合并期间，未缓存的状态仍走后台准备。
 - 复用原贴图的 Spine 组合须持有独立的 MTI 加载引用，随组合释放，避免 `SvTexture.releaseTexture` 提前卸载借用的原图。
 - 独立图集从真实文本来源绑定 SpineAtlasAsset，PICT 使用 SpvLoader 的实际页纹理；不要求骨架 JSON，不猜测容器键。按物理纹理合并不重叠区域，从原像素重新合成，保留 AtlasRegion、材质和共享纹理引用。坏页恢复原像素，其他页继续处理。
 - 图集与 PXL 共用 SharedTextureContents；区域矩形使用当前游戏 Atlas 读取器已旋转后的宽高，坐标从左上转换到 Unity 像素行。后台只读文件和校验元数据，解码与上传留在主线程。

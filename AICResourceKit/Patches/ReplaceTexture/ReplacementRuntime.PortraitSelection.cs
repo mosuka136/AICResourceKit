@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -80,7 +81,8 @@ namespace AICResourceKit.Patches.ReplaceTexture
             {
                 CancelSpinePreparation(resource);
                 if (resource.Preview != null) RemoveResourcePreview(texture, resource);
-                if (resource.Current != null) InstallSpine(texture, resource, key, null);
+                // 渲染在本次绘制稍后发生，临时恢复的原版不会显示；当前组合暂存供收尾时复用。
+                if (resource.Current != null) ParkSpine(texture, resource, key);
                 resource.Attempt = -1;
             }
         }
@@ -95,6 +97,7 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 ? SpinePlayback.AnimationNames(animation.state) : new string[0];
             context.Collecting = false;
             if (CompleteResourcePreview(body, context)) return;
+            if (SettlePortraitSpine(viewer, context)) return;
             if (spineStates.TryGetValue(viewer.getSvTexture(), out var resource))
             {
                 CancelSpinePreparation(resource);
@@ -118,10 +121,127 @@ namespace AICResourceKit.Patches.ReplaceTexture
                 if (data.FindSkin(name) == null) throw new InvalidDataException("Selected portrait state needs skin: " + name);
         }
 
+        // 在原版选轨后的同一次绘制中决定组合：复用当前或缓存组合，未命中时在主线程同步准备。
+        // 返回 false 时交给后台流程（扫描、配置合并、预览或共享查看器等情况）。
+        private static bool SettlePortraitSpine(SpineViewerNel viewer, PortraitContext context)
+        {
+            if (!spineAvailable) return false;
+            var texture = viewer.getSvTexture();
+            if (texture == null) return false;
+            string key = viewer.replace_json_key ?? texture.MtiText.default_json_key;
+            string identity = SpineIdentity(texture.key, key);
+            if (!spineStates.TryGetValue(texture, out var state))
+            {
+                if (!HasLayers(identity)) return true;
+                spineStates.Add(texture, state = new SpineState());
+            }
+            var material = viewer.getMaterial();
+            var viewerAnimator = animator.GetValue(viewer);
+            if (state.Preview != null || HasInvalidLayer(identity) || material == null
+                || LiveViewers().Any(other => other != viewer && other.enabled && other.getSvTexture() == texture
+                    && !ReferenceEquals(animator.GetValue(other), viewerAnimator))) return false;
+            var layers = ActiveLayers(identity).Where(layer => layer.PortraitSelection == null || context.Matches(layer)).ToList();
+            bool conditional = layers.Any(layer => layer.PortraitSelection != null);
+            if (state.Current != null) return state.JsonKey == key && state.SelectedLayers.SequenceEqual(layers);
+            if (layers.Count == 0)
+            {
+                KeepOriginalPortrait(state, key, layers);
+                return true;
+            }
+            var bundle = state.Variants.Take(layers);
+            if (bundle != null && !CanRetain(bundle.Sources, identity))
+            {
+                retired.Add(bundle);
+                bundle = null;
+            }
+            if (bundle == null)
+            {
+                if (state.Variants.Failed(layers))
+                {
+                    KeepOriginalPortrait(state, key, layers);
+                    return true;
+                }
+                if (scan != null || selectionDelay.Waiting || texture.MtiImage0.Image == null) return false;
+                try
+                {
+                    PreparedSpine prepared;
+                    Exception failure = null;
+                    SkeletonDataAsset original;
+                    // 已完成的同组合后台结果直接使用；否则在本次绘制内同步准备，避免先显示原版。
+                    if (state.Pending != null && state.PendingKey == key && state.SelectedLayers.SequenceEqual(layers)
+                        && state.Pending.IsCompleted)
+                    {
+                        original = state.PendingOriginal;
+                        state.Pending.TryTake(out prepared, out failure);
+                        CancelSpinePreparation(state);
+                    }
+                    else
+                    {
+                        CancelSpinePreparation(state);
+                        prepared = SpinePreparation(texture, key, layers, out original)(CancellationToken.None);
+                    }
+                    if (failure != null) throw failure;
+                    if (original == null) throw new InvalidOperationException("Original Spine data was released while preparing a replacement.");
+                    bundle = BuildSpineBundle(texture, layers, material, prepared, original);
+                }
+                catch (Exception error)
+                {
+                    CancelSpinePreparation(state);
+                    BLog.Error("Spine replacement rejected for " + texture.key + "/" + key + "; using the original portrait.", error);
+                    ReplacementDiagnosticRuntime.Spine(texture.key, key, "candidate-failed", error.GetType().Name, error.Message);
+                    state.Variants.Fail(layers);
+                    KeepOriginalPortrait(state, key, layers);
+                    return true;
+                }
+            }
+            bool validated = true;
+            try { ValidatePortraitData(bundle.Composition.PreparedData, context.Animations, context.Skins); }
+            catch (Exception error)
+            {
+                validated = false;
+                if (conditional)
+                {
+                    BLog.Error("Selected portrait candidate cannot play this state; using the original portrait.", error);
+                    ReplacementDiagnosticRuntime.Spine(texture.key, key, "candidate-failed", error.GetType().Name, error.Message);
+                    ParkVariant(state, bundle);
+                    KeepOriginalPortrait(state, key, layers);
+                    return true;
+                }
+            }
+            CancelSpinePreparation(state);
+            state.SelectedLayers = layers;
+            state.Conditional = conditional;
+            InstallSpine(texture, state, key, bundle);
+            if (validated)
+            {
+                context.PreservePlayback = true;
+                if (RebindSelectedPortrait(viewer, context)) return true;
+            }
+            // 兼容映射后的无条件组合沿用原有的重放方式。
+            context.PreservePlayback = false;
+            ReplayViewerAnimation(viewer);
+            return true;
+        }
+
+        private static void KeepOriginalPortrait(SpineState state, string key, List<ReplacementTarget> layers)
+        {
+            CancelSpinePreparation(state);
+            state.SelectedLayers = layers;
+            state.Conditional = layers.Any(layer => layer.PortraitSelection != null);
+            state.JsonKey = key;
+            state.Attempt = revision;
+        }
+
         private static bool ReplaySelectedPortrait(SpineViewerNel viewer)
         {
-            if (!portraitSpineContexts.TryGetValue(viewer, out var context) || context.Collecting || !context.PreservePlayback
-                || !(animator.GetValue(viewer) is SkeletonAnimation animation) || animation.state == null) return false;
+            if (!portraitSpineContexts.TryGetValue(viewer, out var context) || context.Collecting || !context.PreservePlayback) return false;
+            return RebindSelectedPortrait(viewer, context);
+        }
+
+        // 沿用 AnimationState 与轨道，把查看器重绑到当前显示的组合。
+        private static bool RebindSelectedPortrait(SpineViewerNel viewer, PortraitContext context)
+        {
+            if (!(animator.GetValue(viewer) is SkeletonAnimation animation) || animation.state == null) return false;
             var previous = animation.skeletonDataAsset;
             viewer.prepareMaterial(viewer.getMaterial());
             var data = viewerData.GetValue(viewer) as SkeletonDataAsset;
