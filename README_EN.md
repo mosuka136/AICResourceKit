@@ -35,7 +35,7 @@ Installable manifests support `formatVersion: 2` and `3`. Version 3 adds [select
 
 ## Supported Versions
 
-- `Alice In Cradle`: `ver030g`
+- `Alice In Cradle`: `ver030h`
 - `BepInEx`: `v5.4.23.5`
 
 ## License

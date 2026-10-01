@@ -1,6 +1,6 @@
 # 兼容性与支持范围
 
-适用插件为 AICResourceKit 1.2.0，公共可安装契约版本为 2，游戏基线为 ver030g。清单支持 v2/v3；带立绘选择条件时使用 v3，密文使用 BEREENC v1；既有包无需改写或重新加密。机器可读能力由 [ResourceCapabilities](../AICResourceKit/Contracts/ResourceCapabilities.cs) 提供，签入版本见 [capabilities.json](resource-replacement/capabilities.json)。
+适用插件为 AICResourceKit 1.2.0，公共可安装契约版本为 2，游戏基线为 ver030h。清单支持 v2/v3；带立绘选择条件时使用 v3，密文使用 BEREENC v1；既有包无需改写或重新加密。机器可读能力由 [ResourceCapabilities](../AICResourceKit/Contracts/ResourceCapabilities.cs) 提供，签入版本见 [capabilities.json](resource-replacement/capabilities.json)。
 
 ## 资源类型
 
@@ -20,7 +20,7 @@
 
 ## ver030g 地址参考
 
-这些参数用于理解加载范围，制作新包时仍应从目标场景的[诊断报告](diagnostics.md)确认实际来源。
+以下地址取自 ver030g，作为历史示例保留，不代表已逐一在 ver030h 中验证。这些参数用于理解加载范围，制作新包时仍应从目标场景的[诊断报告](diagnostics.md)确认实际来源。
 
 | 来源 | 已知参数及限制 |
 | --- | --- |

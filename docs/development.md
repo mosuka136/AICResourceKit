@@ -15,7 +15,7 @@
 
 主插件使用 .NET Framework 4.7.2；加密工具和 xUnit 测试使用 .NET 8。需要能够构建这些目标框架的 .NET SDK，以及 .NET Framework 4.7.2 引用程序集。Python 和 `jsonschema` 用于作者 Schema 检查。
 
-在仓库根目录创建 `ReferenceLibrary/`，从自己安装的目标版本游戏、BepInEx 和 UnityModBase 中复制以下 DLL。目录内容不纳入 Git。不要混用不同游戏版本的程序集。
+在仓库根目录创建 `ReferenceLibrary/`，从自己安装的 ver030h 游戏、BepInEx 和 UnityModBase 中复制以下 DLL。目录内容不纳入 Git。不要混用不同游戏版本的程序集。
 
 | 来源 | DLL |
 | --- | --- |
@@ -41,9 +41,9 @@ python tools/validate-contract-schema.py
 
 仅修改文档时检查链接、示例和文件格式即可，无需重复跑全部测试。修改清单或公共契约时，运行相关现有测试和 Schema 向量；涉及运行时拆分等跨模块重构时，运行完整现有测试。若还没有安装 `jsonschema`，执行 `python -m pip install jsonschema`。
 
-日常开发使用 Release。构建不会自动部署，产物为 `AICResourceKit/bin/Release/AICResourceKit.dll`。
+日常开发使用 Debug，发布部署使用 Release。构建不会自动部署，Release 产物为 `AICResourceKit/bin/Release/AICResourceKit.dll`。
 
-进行游戏验证前，退出游戏并检查安装目录内 `AICResourceKit.dll` 是普通文件还是符号链接。普通文件需要复制本次构建产物；符号链接需要确认其目标与本次构建配置一致。
+进行游戏验证前，退出游戏并检查安装目录内 `AICResourceKit.dll` 是普通文件还是符号链接。普通文件需要复制本次构建产物；本地开发可将游戏 DLL 建为指向上述 Release 产物的符号链接，构建前退出游戏，构建后重启；UnityModBase 的两个 DLL 也可采用相同方式。符号链接需要确认其目标与本次构建配置一致。
 
 ## 模块职责
 

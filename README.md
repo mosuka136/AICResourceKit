@@ -32,7 +32,7 @@ Alice In Cradle 的资源替换插件与制作辅助工具，基于 BepInEx、Ha
 
 ## 支持的版本
 
-- `Alice In Cradle`：`ver030g`
+- `Alice In Cradle`：`ver030h`
 - `BepInEx`：`v5.4.23.5`
 
 ## 许可证

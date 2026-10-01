@@ -17,7 +17,7 @@ namespace AICResourceKit.Contracts
             ["pluginVersion"] = PluginVersion,
             ["contractVersion"] = ContractVersion,
             ["contractStatus"] = "stable",
-            ["targetGameBaseline"] = "ver030g",
+            ["targetGameBaseline"] = "ver030h",
             ["manifestVersions"] = new[] { ResourceManifest.FormatVersion, ResourceManifest.PortraitFormatVersion },
             ["encryption"] = new Dictionary<string, object>
             {
